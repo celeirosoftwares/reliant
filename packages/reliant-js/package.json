@@ -1,0 +1,19 @@
+{
+  "name": "reliant-js",
+  "version": "1.0.0",
+  "description": "Reliant SDK — The reliability layer for LLM-powered products",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch"
+  },
+  "keywords": ["llm", "ai", "reliability", "validation", "openai", "anthropic", "gemini"],
+  "license": "MIT",
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.7.0"
+  }
+}
