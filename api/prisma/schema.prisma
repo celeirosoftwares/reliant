@@ -3,11 +3,13 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = []
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL")
 }
 
 model Project {
@@ -30,7 +32,7 @@ model Schema {
   slug         String
   version      Int      @default(1)
   description  String?
-  definition   Json     // JSON Schema draft-7
+  definition   Json
   safeFallback Json?    @map("safe_fallback")
   isActive     Boolean  @default(true) @map("is_active")
   createdAt    DateTime @default(now()) @map("created_at")
@@ -50,7 +52,7 @@ model Execution {
   schemaVersion    Int?     @map("schema_version")
   provider         String
   model            String
-  status           String   // 'success' | 'failed' | 'fallback'
+  status           String
   attempts         Int      @default(1)
   latencyMs        Int      @map("latency_ms")
   tokensUsed       Int?     @map("tokens_used")
@@ -58,7 +60,7 @@ model Execution {
   output           Json?
   validationErrors Json?    @map("validation_errors")
   errorMessage     String?  @map("error_message")
-  retryLog         Json?    @map("retry_log") // Array of attempt details
+  retryLog         Json?    @map("retry_log")
   createdAt        DateTime @default(now()) @map("created_at")
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
