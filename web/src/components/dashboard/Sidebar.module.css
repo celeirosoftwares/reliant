@@ -1,0 +1,183 @@
+.sidebar {
+  width: 220px;
+  min-height: 100vh;
+  background: #111111;
+  border-right: 1px solid #222222;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+}
+
+.logo {
+  padding: 24px 20px;
+  border-bottom: 1px solid #222222;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logoMark {
+  width: 28px; height: 28px;
+  background: var(--accent);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-ui-mono);
+  font-weight: 600;
+  font-size: 12px;
+  color: #000;
+  flex-shrink: 0;
+}
+
+.logoText {
+  font-family: var(--font-ui-mono);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.logoVersion {
+  font-family: var(--font-ui-mono);
+  font-size: 9px;
+  color: #555;
+  margin-top: 1px;
+}
+
+.nav {
+  padding: 12px 0;
+  flex: 1;
+}
+
+.navSection {
+  padding: 8px 20px 4px;
+  font-size: 10px;
+  font-weight: 500;
+  color: #555;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: var(--font-ui-mono);
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 20px;
+  color: #888;
+  transition: all 0.15s;
+  font-size: 13px;
+  border-left: 2px solid transparent;
+  margin-left: -1px;
+  font-family: var(--font-ui);
+  text-decoration: none;
+}
+
+.navItem:hover {
+  color: var(--text);
+  background: #1a1a1a;
+}
+
+.navItem.active {
+  color: var(--accent);
+  background: rgba(0, 255, 136, 0.06);
+  border-left-color: var(--accent);
+}
+
+.navIcon {
+  width: 16px;
+  text-align: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.navItem.active .navIcon { opacity: 1; }
+
+.bottom {
+  padding: 16px 20px;
+  border-top: 1px solid #222222;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.userCard {
+  background: #1a1a1a;
+  border: 1px solid #222222;
+  border-radius: 4px;
+  padding: 10px 12px;
+}
+
+.userName {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.userEmail {
+  font-family: var(--font-ui-mono);
+  font-size: 10px;
+  color: #555;
+  word-break: break-all;
+  margin-bottom: 8px;
+}
+
+.planBadge {
+  display: inline-flex;
+  padding: 2px 8px;
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  border-radius: 100px;
+  font-family: var(--font-ui-mono);
+  font-size: 10px;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.apiKeyCard {
+  background: #1a1a1a;
+  border: 1px solid #222222;
+  border-radius: 4px;
+  padding: 8px 10px;
+}
+
+.apiKeyLabel {
+  font-family: var(--font-ui-mono);
+  font-size: 9px;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+
+.apiKeyValue {
+  font-family: var(--font-ui-mono);
+  font-size: 11px;
+  color: #888;
+  word-break: break-all;
+}
+
+.logoutBtn {
+  background: transparent;
+  border: 1px solid #222222;
+  border-radius: 4px;
+  padding: 7px 12px;
+  color: #555;
+  font-family: var(--font-ui-mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.logoutBtn:hover {
+  border-color: #444;
+  color: #888;
+}
