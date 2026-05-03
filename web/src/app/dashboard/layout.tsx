@@ -17,7 +17,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     async function init() {
       const { data: { session } } = await supabase.auth.getSession()
 
+      console.log('INIT session:', session?.user?.email, 'expires:', session?.expires_at)
+
       if (!session) {
+        console.log('NO SESSION - redirecting')
         window.location.href = '/auth/login'
         return
       }
