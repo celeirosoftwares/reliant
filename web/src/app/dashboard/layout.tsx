@@ -10,15 +10,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [checked, setChecked] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
+    const supabase = createClient()
+
     async function init() {
-      const { data: { session } } = await supabase.auth.getSession()
+      // Wait a tick to ensure cookies are available
+      await new Promise(r => setTimeout(r, 100))
+
+      const { data: { session }, error } = await supabase.auth.getSession()
+
+      console.log('Session check:', { session: !!session, error })
 
       if (!session) {
-        router.push('/auth/login')
+        router.replace('/auth/login')
         return
       }
 
@@ -32,17 +39,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       setProfile(profileData)
       setLoading(false)
+      setChecked(true)
     }
 
     init()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_OUT') {
-        router.push('/auth/login')
-      }
-    })
-
-    return () => subscription.unsubscribe()
   }, [])
 
   if (loading) {
