@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import styles from '../auth.module.css'
 
@@ -11,7 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const router = useRouter()
+
   const supabase = createClient()
 
   async function handleLogin(e: React.FormEvent) {
@@ -19,9 +18,7 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-
-    console.log('Login result:', { data, error })
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
       setError(`Erro: ${error.message}`)
@@ -29,14 +26,7 @@ export default function LoginPage() {
       return
     }
 
-    if (!data.session) {
-      setError('Sessão não criada. Tente novamente.')
-      setLoading(false)
-      return
-    }
-
     window.location.href = '/dashboard'
-    router.refresh()
   }
 
   return (
