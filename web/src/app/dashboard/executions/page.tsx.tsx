@@ -74,24 +74,23 @@ export default function ExecutionsPage() {
 
         <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
           {['all', 'success', 'failed', 'fallback'].map(f => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              style={{
-                padding: '6px 12px',
-                background: 'transparent',
-                border: `1px solid ${filter === f ? 'var(--accent)' : '#222'}`,
-                borderRadius: '4px',
-                fontFamily: 'var(--font-ui-mono)',
-                fontSize: '11px',
-                color: filter === f ? 'var(--accent)' : '#555',
-                cursor: 'pointer',
-                background: filter === f ? 'rgba(0,255,136,0.06)' : 'transparent',
-              }}
-            >
-              {f === 'all' ? 'Todos' : f === 'success' ? 'Sucesso' : f === 'failed' ? 'Falha' : 'Fallback'}
-            </button>
-          ))}
+  <button
+    key={f}
+    onClick={() => setFilter(f)}
+    style={{
+      padding: '6px 12px',
+      border: `1px solid ${filter === f ? 'var(--accent)' : '#222'}`,
+      borderRadius: '4px',
+      fontFamily: 'var(--font-ui-mono)',
+      fontSize: '11px',
+      color: filter === f ? 'var(--accent)' : '#555',
+      cursor: 'pointer',
+      background: filter === f ? 'rgba(0,255,136,0.06)' : 'transparent',
+    }}
+  >
+    {f === 'all' ? 'Todos' : f === 'success' ? 'Sucesso' : f === 'failed' ? 'Falha' : 'Fallback'}
+  </button>
+))}
         </div>
 
         <div className={styles.tableCard}>
