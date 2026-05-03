@@ -22,7 +22,14 @@ const navItems = [
     section: 'Configurar',
     items: [
       { href: '/dashboard/schemas', label: 'Schemas', icon: '❑' },
+      { href: '/dashboard/providers', label: 'Providers de IA', icon: '⚡' },
       { href: '/dashboard/settings', label: 'Configurações', icon: '⚙' },
+    ],
+  },
+  {
+    section: 'Recursos',
+    items: [
+      { href: '/docs', label: 'Documentação', icon: '📖' },
     ],
   },
 ]

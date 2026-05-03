@@ -1,82 +1,61 @@
-// src/routes/execute.ts — Main execution endpoint
 import { FastifyInstance } from 'fastify'
-import { authMiddleware } from '../middleware/auth.js'
-import { execute, ExecutionError } from '../services/execution-engine.js'
-import { SUPPORTED_PROVIDERS } from '../providers/index.js'
+import { z } from 'zod'
+import { executeWithReliability } from '../services/execution.js'
 
-export async function executeRoutes(server: FastifyInstance) {
-  server.addHook('onRequest', authMiddleware)
+const executeSchema = z.object({
+  prompt: z.string().min(1),
+  schema_id: z.string().min(1),
+  provider: z.enum(['anthropic', 'openai', 'gemini', 'groq', 'mistral']),
+  model: z.string().min(1),
+  user_id: z.string().min(1),
+  options: z.object({
+    max_retries: z.number().min(1).max(5).optional(),
+  }).optional(),
+})
 
-  server.post('/execute', async (request, reply) => {
-    const body = request.body as {
-      prompt?: string
-      schema_id?: string
-      provider?: string
-      model?: string
-      options?: {
-        max_retries?: number
-        temperature?: number
-        max_tokens?: number
-        fallback?: { enabled?: boolean }
-      }
-    }
+export async function executeRoutes(app: FastifyInstance) {
+  app.post('/execute', async (req, reply) => {
+    const project = (req as any).project
 
-    // Validate required fields
-    if (!body.prompt || typeof body.prompt !== 'string') {
+    const body = executeSchema.safeParse(req.body)
+    if (!body.success) {
       return reply.status(400).send({
-        error: 'Validation error',
-        message: 'prompt is required and must be a string',
+        error: 'Validation Error',
+        details: body.error.flatten(),
       })
     }
 
-    if (!body.schema_id) {
-      return reply.status(400).send({
-        error: 'Validation error',
-        message: 'schema_id is required',
-      })
-    }
-
-    if (!body.provider || !SUPPORTED_PROVIDERS.includes(body.provider as any)) {
-      return reply.status(400).send({
-        error: 'Validation error',
-        message: `provider is required. Supported: ${SUPPORTED_PROVIDERS.join(', ')}`,
-      })
-    }
-
-    if (!body.model) {
-      return reply.status(400).send({
-        error: 'Validation error',
-        message: 'model is required',
-      })
-    }
+    const { prompt, schema_id, provider, model, user_id, options } = body.data
 
     try {
-      const result = await execute({
-        projectId: request.project!.id,
-        prompt: body.prompt,
-        schemaId: body.schema_id,
-        provider: body.provider,
-        model: body.model,
-        options: body.options,
+      const result = await executeWithReliability({
+        prompt,
+        schemaId: schema_id,
+        provider,
+        model,
+        projectId: project.id,
+        userId: user_id,
+        maxRetries: options?.max_retries,
       })
 
-      const statusCode = result.success ? 200 : 422
-      return reply.status(statusCode).send(result)
-    } catch (err) {
-      if (err instanceof ExecutionError) {
-        const statusMap: Record<string, number> = {
-          SCHEMA_NOT_FOUND: 404,
-        }
-        return reply.status(statusMap[err.code] ?? 400).send({
-          error: err.code,
-          message: err.message,
-        })
-      }
-
-      request.log.error(err, 'Execution failed')
+      return reply.status(result.success ? 200 : 207).send({
+        success: result.success,
+        status: result.status,
+        output: result.output,
+        metadata: {
+          execution_id: result.executionId,
+          attempts: result.attempts,
+          latency_ms: result.latencyMs,
+          tokens_used: result.tokensUsed,
+          provider,
+          model,
+        },
+      })
+    } catch (err: any) {
+      req.log.error(err)
       return reply.status(500).send({
-        error: 'Internal error',
-        message: 'Execution failed. Please try again.',
+        error: 'Execution Failed',
+        message: err.message,
       })
     }
   })
