@@ -14,8 +14,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const supabase = createClient()
 
   useEffect(() => {
-    // Listen to auth state changes instead of one-time check
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession()
+
       if (!session) {
         router.push('/auth/login')
         return
@@ -31,6 +32,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       setProfile(profileData)
       setLoading(false)
+    }
+
+    init()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT') {
+        router.push('/auth/login')
+      }
     })
 
     return () => subscription.unsubscribe()
