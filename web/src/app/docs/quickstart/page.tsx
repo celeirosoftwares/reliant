@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import styles from '../../docs.module.css'
+import styles from '@/components/dashboard/Docs.module.css'
 
 export default function QuickstartPage() {
   return (
