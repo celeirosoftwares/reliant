@@ -223,8 +223,8 @@ function setLang(lang: string) {
 
   // Sync mobile menu i18n links
   document.querySelectorAll('.mobile-menu [data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n')
-    if (i18n[lang][key]) el.textContent = i18n[lang][key]
+    const key = el.getAttribute('data-i18n') as string
+    if (key && i18n[lang][key]) el.textContent = i18n[lang][key]
   })
 
   document.title = lang === 'pt'
