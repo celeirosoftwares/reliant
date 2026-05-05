@@ -257,14 +257,27 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el))
 // Copy
 function copyInstall() {
   navigator.clipboard.writeText('npm install reliant-js')
-  const btn = document.getElementById('copy-btn')
-  btn.textContent = currentLang === 'pt' ? 'copiado!' : 'copied!'
-  btn.style.color = 'var(--accent)'
-  setTimeout(() => {
-    btn.textContent = currentLang === 'pt' ? 'copiar' : 'copy'
-    btn.style.color = ''
-  }, 2000)
+  const btn = document.getElementById('copy-btn') as HTMLButtonElement | null
+  if (btn) {
+    btn.textContent = currentLang === 'pt' ? 'copiado!' : 'copied!'
+    btn.style.color = 'var(--accent)'
+    setTimeout(() => {
+      if (btn) {
+        btn.textContent = currentLang === 'pt' ? 'copiar' : 'copy'
+        btn.style.color = ''
+      }
+    }, 2000)
+  }
 }
+    // Mobile menu toggle
+    function toggleMenu() {
+      const menu = document.getElementById('mobile-menu')
+      const hamburger = document.getElementById('hamburger')
+      if (menu) menu.classList.toggle('open')
+      if (hamburger) hamburger.classList.toggle('open')
+      document.body.style.overflow = menu?.classList.contains('open') ? 'hidden' : ''
+    }
+
     // Expose to window for HTML onclick handlers
     if (typeof window !== 'undefined') {
       ;(window as any).setLang = setLang
