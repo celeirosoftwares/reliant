@@ -1760,12 +1760,14 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el))
 function copyInstall() {
   navigator.clipboard.writeText('npm install reliant-js')
   const btn = document.getElementById('copy-btn')
-  btn.textContent = currentLang === 'pt' ? 'copiado!' : 'copied!'
-  btn.style.color = 'var(--accent)'
-  setTimeout(() => {
-    btn.textContent = currentLang === 'pt' ? 'copiar' : 'copy'
-    btn.style.color = ''
-  }, 2000)
+  if (btn) {
+    btn.textContent = currentLang === 'pt' ? 'copiado!' : 'copied!'
+    btn.style.color = 'var(--accent)'
+    setTimeout(() => {
+      btn.textContent = currentLang === 'pt' ? 'copiar' : 'copy'
+      btn.style.color = ''
+    }, 2000)
+  }
 }
 </script>` }} />
     </>
