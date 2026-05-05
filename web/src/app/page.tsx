@@ -7,7 +7,7 @@ export default function LandingPage() {
     // Expose functions globally for HTML onclick handlers
     // i18n and interactions script
     // TRANSLATIONS
-const i18n = {
+const i18n: Record<string, Record<string, string>> = {
   pt: {
     'nav.features': 'Funcionalidades',
     'nav.how': 'Como funciona',
@@ -211,8 +211,8 @@ function setLang(lang: string) {
   document.documentElement.lang = lang
 
   document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n')
-    if (i18n[lang][key]) {
+    const key = el.getAttribute('data-i18n') as string
+    if (key && i18n[lang][key]) {
       el.textContent = i18n[lang][key]
     }
   })
@@ -1509,7 +1509,7 @@ console.<span class="c-fn">log</span>(result.<span class="c-key">output</span>)<
 
 <script>
 // TRANSLATIONS
-const i18n = {
+const i18n: Record<string, Record<string, string>> = {
   pt: {
     'nav.features': 'Funcionalidades',
     'nav.how': 'Como funciona',
@@ -1713,8 +1713,8 @@ function setLang(lang: string) {
   document.documentElement.lang = lang
 
   document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n')
-    if (i18n[lang][key]) {
+    const key = el.getAttribute('data-i18n') as string
+    if (key && i18n[lang][key]) {
       el.textContent = i18n[lang][key]
     }
   })
