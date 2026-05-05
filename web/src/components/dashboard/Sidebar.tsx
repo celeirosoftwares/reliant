@@ -68,8 +68,7 @@ export default function Sidebar({ user, profile }: Props) {
 
   async function handleLogout() {
     await supabase.auth.signOut()
-    router.push('/auth/login')
-    router.refresh()
+    window.location.href = '/auth/login'
   }
 
   const plan = profile?.plan || 'free'
@@ -107,7 +106,7 @@ export default function Sidebar({ user, profile }: Props) {
       <div className={styles.bottom}>
         {/* Usage bar */}
         {usageCount !== null && limit > 0 && (
-          <div style={{ marginBottom: '8px' }}>
+          <div style={{ marginBottom: '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-ui-mono)', fontSize: '10px', color: '#555', marginBottom: '5px' }}>
               <span>Uso mensal</span>
               <span style={{ color: usagePercent >= 90 ? '#ff4444' : '#555' }}>
@@ -116,8 +115,7 @@ export default function Sidebar({ user, profile }: Props) {
             </div>
             <div style={{ background: '#1a1a1a', borderRadius: '100px', height: '4px', overflow: 'hidden' }}>
               <div style={{
-                height: '100%',
-                borderRadius: '100px',
+                height: '100%', borderRadius: '100px',
                 width: `${usagePercent}%`,
                 background: usagePercent >= 90 ? '#ff4444' : usagePercent >= 70 ? '#ffbb00' : 'var(--accent)',
                 transition: 'width 0.3s',

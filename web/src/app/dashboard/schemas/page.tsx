@@ -149,16 +149,27 @@ export default function SchemasPage() {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
             {schemas.map(s => (
-              <div key={s.id} style={{ background: '#111', border: '1px solid #222', borderRadius: '4px', padding: '20px', cursor: 'pointer', transition: 'border-color 0.15s' }}
-                onClick={() => openEdit(s)}>
-                <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '14px', fontWeight: 600, color: 'var(--text)', marginBottom: '4px' }}>{s.name}</div>
-                <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '11px', color: '#555', marginBottom: '8px' }}>{s.slug} · v{s.version}</div>
-                {s.system_prompt && (
-                  <div style={{ display: 'inline-flex', padding: '2px 8px', background: 'rgba(68,136,255,0.1)', border: '1px solid rgba(68,136,255,0.2)', borderRadius: '3px', fontFamily: 'var(--font-ui-mono)', fontSize: '10px', color: '#4488ff', marginBottom: '8px' }}>
-                    prompt customizado
+              <div key={s.id} style={{ background: '#111', border: '1px solid #222', borderRadius: '4px', padding: '20px', transition: 'border-color 0.15s' }}>
+                <div style={{ cursor: 'pointer' }} onClick={() => openEdit(s)}>
+                  <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '14px', fontWeight: 600, color: 'var(--text)', marginBottom: '4px' }}>{s.name}</div>
+                  <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '11px', color: '#555', marginBottom: '8px' }}>{s.slug} · v{s.version}</div>
+                  {s.system_prompt && (
+                    <div style={{ display: 'inline-flex', padding: '2px 8px', background: 'rgba(68,136,255,0.1)', border: '1px solid rgba(68,136,255,0.2)', borderRadius: '3px', fontFamily: 'var(--font-ui-mono)', fontSize: '10px', color: '#4488ff', marginBottom: '8px' }}>
+                      prompt customizado
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+                  <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '10px', color: '#444', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {s.id}
                   </div>
-                )}
-                <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '11px', color: '#555' }}>ID: {s.id.substring(0, 12)}...</div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(s.id) }}
+                    style={{ background: 'transparent', border: '1px solid #222', borderRadius: '3px', padding: '3px 8px', fontFamily: 'var(--font-ui-mono)', fontSize: '10px', color: '#555', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
+                  >
+                    copiar ID
+                  </button>
+                </div>
               </div>
             ))}
           </div>
