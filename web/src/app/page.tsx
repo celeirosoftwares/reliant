@@ -1,15 +1,281 @@
-import type { Metadata } from 'next'
+'use client'
 
-export const metadata: Metadata = {
-  title: 'Reliant — A Camada de Confiabilidade para Produtos com LLM',
-  description: 'Reliant fica entre seu app e qualquer LLM. Outputs estruturados garantidos, retry inteligente e observabilidade completa.',
-}
+import { useEffect } from 'react'
 
 export default function LandingPage() {
+  useEffect(() => {
+    // Expose functions globally for HTML onclick handlers
+    // i18n and interactions script
+    // TRANSLATIONS
+const i18n = {
+  pt: {
+    'nav.features': 'Funcionalidades',
+    'nav.how': 'Como funciona',
+    'nav.pricing': 'Preços',
+    'nav.cta': 'Começar →',
+    'hero.badge': 'Disponível agora — reliant-js v1.0.0',
+    'hero.title1': 'Seu pipeline de IA,',
+    'hero.title2': 'finalmente confiável.',
+    'hero.sub': 'Reliant fica entre seu app e qualquer LLM. Outputs estruturados garantidos, retry inteligente e observabilidade completa — para seus pipelines de IA funcionarem em produção.',
+    'hero.cta1': 'Começar a construir →',
+    'hero.cta2': 'Ver como funciona',
+    'logos.label': 'Compatível com qualquer provedor de LLM',
+    'logos.any': 'Qualquer API de LLM',
+    'problem.label': 'O problema',
+    'problem.title': 'LLMs quebram pipelines.\nTodo dia.',
+    'problem.sub': 'JSON que não parseia. Schemas que falham na validação. Zero visibilidade do que deu errado.',
+    'problem.1.title': 'JSON malformado derruba seu app',
+    'problem.1.desc': 'LLMs retornam texto válido mas JSON inválido. Uma resposta ruim quebra o pipeline inteiro.',
+    'problem.2.title': 'Retry manual é frágil',
+    'problem.2.desc': 'Devs escrevem lógica de retry customizada em cada projeto. É inconsistente e sem testes.',
+    'problem.3.title': 'Zero visibilidade em produção',
+    'problem.3.desc': 'Você não sabe quais schemas falham mais, quando drift acontece, ou por que os outputs mudam.',
+    'problem.4.title': 'Provedores se comportam diferente',
+    'problem.4.desc': 'OpenAI, Anthropic e Gemini tratam outputs estruturados de formas diferentes. Cross-provider é um pesadelo.',
+    'features.label': 'A solução',
+    'features.title': 'Tudo que seu pipeline de IA precisa.\nNada que não precisa.',
+    'f1.title': 'Structured Output Engine',
+    'f1.desc': 'Defina JSON schemas uma vez. Reliant garante que toda resposta do LLM bate — ou faz retry automaticamente com um prompt corrigido.',
+    'f2.title': 'Retry Inteligente',
+    'f2.desc': 'Validação falhou? Reliant reescreve o prompt com os erros exatos, reduz a temperatura e tenta até 3x antes de usar o fallback seguro.',
+    'f3.title': 'Observabilidade Completa',
+    'f3.desc': 'Toda execução logada. Taxa de sucesso, latência, tokens e drift por schema. Saiba exatamente o que acontece em produção.',
+    'f4.title': 'Provider Agnóstico',
+    'f4.desc': 'OpenAI, Anthropic, Gemini — uma API para tudo. Troque de provider sem mudar seu código de aplicação.',
+    'f5.title': 'Safe Fallbacks',
+    'f5.desc': 'Defina o que acontece quando todos os retries falham. Seu app continua rodando com uma resposta previsível e segura.',
+    'f6.title': 'Schema Registry',
+    'f6.desc': 'Versione seus contratos de output. Acompanhe mudanças. Nunca quebre compatibilidade retroativa por acidente.',
+    'how.label': 'Como funciona',
+    'how.title': 'Uma chamada de API.\nOutput garantido.',
+    'how.1.title': 'Você chama o Reliant',
+    'how.1.desc': 'Envie seu prompt, schema ID e provedor escolhido. Um endpoint, qualquer LLM.',
+    'how.2.title': 'Reliant chama o LLM',
+    'how.2.desc': 'Com um system prompt otimizado que força a estrutura do seu schema automaticamente.',
+    'how.3.title': 'Output validado',
+    'how.3.valid': 'Válido?',
+    'how.3.return': 'Retorna imediatamente.',
+    'how.3.invalid': 'Inválido?',
+    'how.3.retry': 'Reescreve prompt + retry.',
+    'how.4.title': 'Tudo logado',
+    'how.4.desc': 'Cada tentativa, latência, tokens e erros registrados. Trilha de auditoria completa sempre disponível.',
+    'install.label': 'Comece em minutos',
+    'install.title': 'Integre em\nmenos de 10 linhas.',
+    'install.sub': 'Sem configuração complexa. Sem lock-in. Self-host no Railway em minutos.',
+    'install.copy': 'copiar',
+    'install.steps': '3 passos para produção',
+    'metrics.label': 'Feito para produção',
+    'metrics.title': 'Números que importam.',
+    'metrics.1': 'Taxa de sucesso',
+    'metrics.2': 'Retries inteligentes',
+    'metrics.3': 'Overhead por chamada',
+    'metrics.4': 'Provedores suportados',
+    'pricing.label': 'Preços',
+    'pricing.title': 'Simples. Transparente.\nEscale quando precisar.',
+    'pricing.free': 'Grátis',
+    'pricing.free.period': 'para sempre · self-hosted',
+    'pricing.free.1': 'Até 1.000 execuções/mês',
+    'pricing.free.2': '1 projeto',
+    'pricing.free.3': 'Dashboard completo',
+    'pricing.free.4': 'SDKs JS + Python',
+    'pricing.free.5': 'Suporte OpenAI + Anthropic',
+    'pricing.free.6': 'Suporte comunidade',
+    'pricing.free.cta': 'Deploy no Railway →',
+    'pricing.pro.badge': 'Mais popular',
+    'pricing.pro.period': 'por projeto · cloud gerenciado',
+    'pricing.pro.1': 'Execuções ilimitadas',
+    'pricing.pro.2': '5 projetos',
+    'pricing.pro.3': 'Observabilidade + alertas',
+    'pricing.pro.4': 'Todos os provedores',
+    'pricing.pro.5': 'Fallback multi-modelo',
+    'pricing.pro.6': 'Suporte prioritário',
+    'pricing.pro.cta': 'Acesso antecipado →',
+    'pricing.ent': 'Sob consulta',
+    'pricing.ent.period': 'volume · on-premise disponível',
+    'pricing.ent.1': 'Tudo ilimitado',
+    'pricing.ent.2': 'Projetos ilimitados',
+    'pricing.ent.3': 'Guardrails customizados',
+    'pricing.ent.4': 'Deploy on-premise',
+    'pricing.ent.5': 'Suporte dedicado',
+    'pricing.ent.cta': 'Fale conosco →',
+    'cta.title': 'Pare de babysitting\nseus outputs de LLM.',
+    'cta.sub': 'Comece com o plano gratuito. Self-host em minutos. Escale quando precisar.',
+    'cta.cta1': 'Começar de graça →',
+    'cta.cta2': 'Fale conosco',
+    'footer.text': 'Reliant · A camada de confiabilidade para produtos com LLM',
+    'footer.contact': 'Contato',
+  },
+  en: {
+    'nav.features': 'Features',
+    'nav.how': 'How it works',
+    'nav.pricing': 'Pricing',
+    'nav.cta': 'Get started →',
+    'hero.badge': 'Now available — reliant-js v1.0.0',
+    'hero.title1': 'Your LLM pipeline,',
+    'hero.title2': 'finally reliable.',
+    'hero.sub': 'Reliant sits between your app and any LLM. Guaranteed structured outputs, intelligent retry, and full observability — so your AI pipelines work in production.',
+    'hero.cta1': 'Start building →',
+    'hero.cta2': 'See how it works',
+    'logos.label': 'Works with any LLM provider',
+    'logos.any': 'Any LLM API',
+    'problem.label': 'The problem',
+    'problem.title': 'LLMs break pipelines.\nEvery day.',
+    'problem.sub': 'JSON that doesn\'t parse. Schemas that fail validation. Zero visibility into what went wrong.',
+    'problem.1.title': 'Malformed JSON crashes your app',
+    'problem.1.desc': 'LLMs return valid text but invalid JSON. One bad response breaks the entire pipeline.',
+    'problem.2.title': 'Manual retry is fragile',
+    'problem.2.desc': 'Developers write custom retry logic for every project. It\'s inconsistent and untested.',
+    'problem.3.title': 'Zero visibility in production',
+    'problem.3.desc': 'You don\'t know which schemas fail most, when drift happens, or why outputs change over time.',
+    'problem.4.title': 'Providers behave differently',
+    'problem.4.desc': 'OpenAI, Anthropic and Gemini handle structured outputs differently. Cross-provider is a nightmare.',
+    'features.label': 'The solution',
+    'features.title': 'Everything your LLM pipeline needs.\nNothing it doesn\'t.',
+    'f1.title': 'Structured Output Engine',
+    'f1.desc': 'Define JSON schemas once. Reliant guarantees every LLM response matches — or retries automatically with a corrected prompt.',
+    'f2.title': 'Intelligent Retry',
+    'f2.desc': 'Failed validation? Reliant rewrites the prompt with the exact errors, reduces temperature, and retries up to 3x before falling back safely.',
+    'f3.title': 'Full Observability',
+    'f3.desc': 'Every execution logged. Success rates, latency, tokens, and drift tracked per schema. Know exactly what\'s happening in production.',
+    'f4.title': 'Provider Agnostic',
+    'f4.desc': 'OpenAI, Anthropic, Gemini — one API to rule them all. Switch providers without changing your application code.',
+    'f5.title': 'Safe Fallbacks',
+    'f5.desc': 'Define what happens when all retries fail. Your app keeps running with a predictable, safe response instead of crashing.',
+    'f6.title': 'Schema Registry',
+    'f6.desc': 'Version your output contracts. Track changes over time. Never break backward compatibility by accident.',
+    'how.label': 'How it works',
+    'how.title': 'One API call.\nGuaranteed output.',
+    'how.1.title': 'You call Reliant',
+    'how.1.desc': 'Send your prompt, schema ID, and chosen provider. One endpoint, any LLM.',
+    'how.2.title': 'Reliant calls the LLM',
+    'how.2.desc': 'With an optimized system prompt that enforces your schema structure automatically.',
+    'how.3.title': 'Output validated',
+    'how.3.valid': 'Valid?',
+    'how.3.return': 'Return immediately.',
+    'how.3.invalid': 'Invalid?',
+    'how.3.retry': 'Rewrite prompt + retry.',
+    'how.4.title': 'Everything logged',
+    'how.4.desc': 'Every attempt, latency, tokens, and errors recorded. Full audit trail always available.',
+    'install.label': 'Get started in minutes',
+    'install.title': 'Integrate in\nunder 10 lines.',
+    'install.sub': 'No complex setup. No vendor lock-in. Self-host on Railway in minutes.',
+    'install.copy': 'copy',
+    'install.steps': '3 steps to production',
+    'metrics.label': 'Built for production',
+    'metrics.title': 'Numbers that matter.',
+    'metrics.1': 'Output success rate',
+    'metrics.2': 'Intelligent retries',
+    'metrics.3': 'Overhead per call',
+    'metrics.4': 'Providers supported',
+    'pricing.label': 'Pricing',
+    'pricing.title': 'Simple. Transparent.\nScale when you\'re ready.',
+    'pricing.free': 'Free',
+    'pricing.free.period': 'forever · self-hosted',
+    'pricing.free.1': 'Up to 1,000 executions/mo',
+    'pricing.free.2': '1 project',
+    'pricing.free.3': 'Full observability dashboard',
+    'pricing.free.4': 'JS + Python SDKs',
+    'pricing.free.5': 'OpenAI + Anthropic support',
+    'pricing.free.6': 'Community support',
+    'pricing.free.cta': 'Deploy on Railway →',
+    'pricing.pro.badge': 'Most popular',
+    'pricing.pro.period': 'per project · managed cloud',
+    'pricing.pro.1': 'Unlimited executions',
+    'pricing.pro.2': '5 projects',
+    'pricing.pro.3': 'Observability + alerts',
+    'pricing.pro.4': 'All providers',
+    'pricing.pro.5': 'Multi-model fallback',
+    'pricing.pro.6': 'Priority support',
+    'pricing.pro.cta': 'Get early access →',
+    'pricing.ent': 'Custom',
+    'pricing.ent.period': 'volume · on-premise available',
+    'pricing.ent.1': 'Unlimited everything',
+    'pricing.ent.2': 'Unlimited projects',
+    'pricing.ent.3': 'Custom guardrails',
+    'pricing.ent.4': 'On-premise deployment',
+    'pricing.ent.5': 'Dedicated support',
+    'pricing.ent.cta': 'Talk to us →',
+    'cta.title': 'Stop babysitting\nyour LLM outputs.',
+    'cta.sub': 'Start with the free tier. Self-host in minutes. Scale when you need to.',
+    'cta.cta1': 'Start building for free →',
+    'cta.cta2': 'Talk to us',
+    'footer.text': 'Reliant · The reliability layer for LLM-powered products',
+    'footer.contact': 'Contact',
+  }
+}
+
+let currentLang = 'pt'
+
+function setLang(lang) {
+  currentLang = lang
+  document.documentElement.lang = lang
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n')
+    if (i18n[lang][key]) {
+      el.textContent = i18n[lang][key]
+    }
+  })
+
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent === lang.toUpperCase())
+  })
+
+  // Sync mobile menu i18n links
+  document.querySelectorAll('.mobile-menu [data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n')
+    if (i18n[lang][key]) el.textContent = i18n[lang][key]
+  })
+
+  document.title = lang === 'pt'
+    ? 'Reliant — A Camada de Confiabilidade para Produtos com LLM'
+    : 'Reliant — The Reliability Layer for LLM-Powered Products'
+
+  localStorage.setItem('reliant_lang', lang)
+}
+
+// Restore saved lang
+const saved = localStorage.getItem('reliant_lang')
+if (saved && saved !== 'pt') setLang(saved)
+
+// Nav scroll
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 20)
+})
+
+// Reveal on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 80)
+      observer.unobserve(entry.target)
+    }
+  })
+}, { threshold: 0.1 })
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el))
+
+// Copy
+function copyInstall() {
+  navigator.clipboard.writeText('npm install reliant-js')
+  const btn = document.getElementById('copy-btn')
+  btn.textContent = currentLang === 'pt' ? 'copiado!' : 'copied!'
+  btn.style.color = 'var(--accent)'
+  setTimeout(() => {
+    btn.textContent = currentLang === 'pt' ? 'copiar' : 'copy'
+    btn.style.color = ''
+  }, 2000)
+}
+    // Expose to window for HTML onclick handlers
+    if (typeof window !== 'undefined') {
+      ;(window as any).setLang = setLang
+      ;(window as any).toggleMenu = toggleMenu
+      ;(window as any).copyInstall = copyInstall
+    }
+  }, [])
+
   return (
     <>
-      <style>{`
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      <style dangerouslySetInnerHTML={{ __html: `*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
       --bg: #050505;
@@ -853,11 +1119,8 @@ export default function LandingPage() {
       /* Footer */
       footer { flex-direction: column; gap: 20px; text-align: center; padding: 32px 20px; }
       .footer-links { flex-wrap: wrap; justify-content: center; }
-    }
-  `}</style>
-      <div dangerouslySetInnerHTML={{ __html: `
-
-<nav id="nav">
+    }` }} />
+      <div dangerouslySetInnerHTML={{ __html: `<nav id="nav">
   <a href="#" class="nav-logo">
     <div class="nav-logo-mark">R</div>
     <span class="nav-logo-text">Reliant</span>
@@ -886,7 +1149,7 @@ export default function LandingPage() {
   <a href="#how" data-i18n="nav.how" onclick="toggleMenu()">Como funciona</a>
   <a href="#pricing" data-i18n="nav.pricing" onclick="toggleMenu()">Preços</a>
   <a href="https://www.npmjs.com/package/reliant-js" target="_blank" onclick="toggleMenu()">npm</a>
-  <a href="/auth/signup" class="mobile-cta" data-i18n="nav.cta" onclick="toggleMenu()">Começar →</a>
+  <a href="/auth/signup" class="mobile-cta" onclick="toggleMenu()">Começar →</a>
   <div class="mobile-lang lang-toggle">
     <button class="lang-btn active" id="mobile-lang-pt" onclick="setLang('pt'); toggleMenu()">PT</button>
     <button class="lang-btn" id="mobile-lang-en" onclick="setLang('en'); toggleMenu()">EN</button>
@@ -908,7 +1171,7 @@ export default function LandingPage() {
     Reliant fica entre seu app e qualquer LLM. Outputs estruturados garantidos, retry inteligente e observabilidade completa — para seus pipelines de IA funcionarem em produção.
   </p>
   <div class="hero-actions">
-    <a href="/auth/signup" class="btn-primary" data-i18n="hero.cta1">Começar a construir →</a>
+    <a href="/auth/signup" class="btn-primary">Começar a construir →</a>
     <a href="#how" class="btn-ghost" data-i18n="hero.cta2">Ver como funciona</a>
   </div>
   <div class="hero-code">
@@ -961,7 +1224,7 @@ console.<span class="c-fn">log</span>(result.<span class="c-key">output</span>)<
 <!-- PROBLEM -->
 <section>
   <div class="section-label" data-i18n="problem.label">O problema</div>
-  <div class="section-title" data-i18n="problem.title">LLMs quebram pipelines.<br/>Todo dia.</div>
+  <div class="section-title" data-i18n="problem.title">LLMs quebram pipelines.<br>Todo dia.</div>
   <p class="section-sub" data-i18n="problem.sub">JSON que não parseia. Schemas que falham na validação. Zero visibilidade do que deu errado.</p>
 
   <div class="problem-grid reveal">
@@ -1027,7 +1290,7 @@ console.<span class="c-fn">log</span>(result.<span class="c-key">output</span>)<
 <!-- FEATURES -->
 <section id="features">
   <div class="section-label reveal" data-i18n="features.label">A solução</div>
-  <div class="section-title reveal" data-i18n="features.title">Tudo que seu pipeline de IA precisa.<br/>Nada que não precisa.<br>Nada que não precisa.</div>
+  <div class="section-title reveal" data-i18n="features.title">Tudo que seu pipeline de IA precisa.<br>Nada que não precisa.</div>
 
   <div class="features-grid reveal">
     <div class="feature-card">
@@ -1068,7 +1331,7 @@ console.<span class="c-fn">log</span>(result.<span class="c-key">output</span>)<
 <!-- HOW -->
 <section id="how">
   <div class="section-label reveal" data-i18n="how.label">Como funciona</div>
-  <div class="section-title reveal" data-i18n="how.title">Uma chamada de API.<br/>Output garantido.<br>Output garantido.</div>
+  <div class="section-title reveal" data-i18n="how.title">Uma chamada de API.<br>Output garantido.</div>
 
   <div class="flow reveal">
     <div class="flow-step">
@@ -1169,35 +1432,35 @@ console.<span class="c-fn">log</span>(result.<span class="c-key">output</span>)<
 <!-- PRICING -->
 <section id="pricing">
   <div class="section-label reveal" data-i18n="pricing.label">Preços</div>
-  <div class="section-title reveal" data-i18n="pricing.title">Simples. Transparente.<br/>Escale quando precisar.<br>Escale quando precisar.</div>
+  <div class="section-title reveal" data-i18n="pricing.title">Simples. Transparente.<br>Escale quando precisar.</div>
 
   <div class="pricing-grid reveal">
     <div class="pricing-card">
-      <div class="pricing-name">Starter</div>
-      <div class="pricing-price" data-i18n="pricing.free">Grátis</div>
-      <div class="pricing-period" data-i18n="pricing.free.period">para sempre · self-hosted</div>
+      <div class="pricing-name">Free</div>
+      <div class="pricing-price">Grátis</div>
+      <div class="pricing-period">para sempre</div>
       <ul class="pricing-features">
-        <li data-i18n="pricing.free.1">1.000 execuções/mês</li>
-        <li data-i18n="pricing.free.2">Dashboard completo</li>
-        <li data-i18n="pricing.free.3">Dashboard completo</li>
-        <li data-i18n="pricing.free.4">SDKs JS + Python</li>
-        <li data-i18n="pricing.free.5">Suporte OpenAI + Anthropic</li>
-        <li data-i18n="pricing.free.6">Suporte comunidade</li>
+        <li >1.000 execuções/mês</li>
+        <li >Dashboard completo</li>
+        <li >JS + Python SDK</li>
+        <li >Todos os providers</li>
+        <li >Suporte comunidade</li>
+        <li </li>
       </ul>
-      <a href="/auth/signup" class="btn-ghost" style="width:100%; justify-content:center;" data-i18n="pricing.free.cta">Criar conta grátis →</a>
+      <a href="/auth/signup" class="btn-ghost" style="width:100%; justify-content:center;">Deploy no Railway →</a>
     </div>
     <div class="pricing-card featured">
       <div class="pricing-badge" data-i18n="pricing.pro.badge">Mais popular</div>
       <div class="pricing-name">Pro</div>
-      <div class="pricing-price">$49<span style="font-size:20px; color:var(--text-2)">/mo</span></div>
-      <div class="pricing-period" data-i18n="pricing.pro.period">por projeto · cloud gerenciado</div>
+      <div class="pricing-price">$29<span style="font-size:20px; color:var(--text-2)">/mês</span></div>
+      <div class="pricing-period" >por projeto · cloud</div>
       <ul class="pricing-features">
-        <li data-i18n="pricing.pro.1">Execuções ilimitadas</li>
-        <li data-i18n="pricing.pro.2">250.000 exec/mês</li>
-        <li data-i18n="pricing.pro.3">Observabilidade + alertas</li>
-        <li data-i18n="pricing.pro.4">Todos os provedores</li>
-        <li data-i18n="pricing.pro.5">Fallback multi-modelo</li>
-        <li data-i18n="pricing.pro.6">Suporte prioritário</li>
+        <li >250.000 execuções/mês</li>
+        <li >Todos os providers</li>
+        <li >Alertas de falha</li>
+        <li >Logs 60 dias</li>
+        <li >Suporte prioritário</li>
+        <li >SLA 99.9%</li>
         <li>SLA 99.9%</li>
       </ul>
       <a href="mailto:hello@reliant.dev" class="btn-primary" style="width:100%; justify-content:center;" data-i18n="pricing.pro.cta">Acesso antecipado →</a>
@@ -1208,7 +1471,7 @@ console.<span class="c-fn">log</span>(result.<span class="c-key">output</span>)<
       <div class="pricing-period" data-i18n="pricing.ent.period">volume · on-premise disponível</div>
       <ul class="pricing-features">
         <li data-i18n="pricing.ent.1">Tudo ilimitado</li>
-        <li data-i18n="pricing.ent.2">1.000.000 exec/mês</li>
+        <li data-i18n="pricing.ent.2">Projetos ilimitados</li>
         <li data-i18n="pricing.ent.3">Guardrails customizados</li>
         <li>SSO + RBAC</li>
         <li data-i18n="pricing.ent.4">Deploy on-premise</li>
@@ -1223,7 +1486,7 @@ console.<span class="c-fn">log</span>(result.<span class="c-key">output</span>)<
 <!-- CTA -->
 <div class="cta-section">
   <div class="cta-glow"></div>
-  <div class="cta-title reveal" data-i18n="cta.title">Pare de babysitting<br/>seus outputs de LLM.<br>seus outputs de LLM.</div>
+  <div class="cta-title reveal" data-i18n="cta.title">Pare de babysitting<br>seus outputs de LLM.</div>
   <p class="cta-sub reveal" data-i18n="cta.sub">Comece com o plano gratuito. Self-host em minutos. Escale quando precisar.</p>
   <div class="reveal" style="display:flex; gap:16px; justify-content:center;">
     <a href="/auth/signup" class="btn-primary" data-i18n="cta.cta1">Começar de graça →</a>
@@ -1261,7 +1524,7 @@ const i18n = {
     'logos.label': 'Compatível com qualquer provedor de LLM',
     'logos.any': 'Qualquer API de LLM',
     'problem.label': 'O problema',
-    'problem.title': 'LLMs quebram pipelines.\nTodo dia.',
+    'problem.title': 'LLMs quebram pipelines.\\nTodo dia.',
     'problem.sub': 'JSON que não parseia. Schemas que falham na validação. Zero visibilidade do que deu errado.',
     'problem.1.title': 'JSON malformado derruba seu app',
     'problem.1.desc': 'LLMs retornam texto válido mas JSON inválido. Uma resposta ruim quebra o pipeline inteiro.',
@@ -1272,7 +1535,7 @@ const i18n = {
     'problem.4.title': 'Provedores se comportam diferente',
     'problem.4.desc': 'OpenAI, Anthropic e Gemini tratam outputs estruturados de formas diferentes. Cross-provider é um pesadelo.',
     'features.label': 'A solução',
-    'features.title': 'Tudo que seu pipeline de IA precisa.\nNada que não precisa.',
+    'features.title': 'Tudo que seu pipeline de IA precisa.\\nNada que não precisa.',
     'f1.title': 'Structured Output Engine',
     'f1.desc': 'Defina JSON schemas uma vez. Reliant garante que toda resposta do LLM bate — ou faz retry automaticamente com um prompt corrigido.',
     'f2.title': 'Retry Inteligente',
@@ -1286,7 +1549,7 @@ const i18n = {
     'f6.title': 'Schema Registry',
     'f6.desc': 'Versione seus contratos de output. Acompanhe mudanças. Nunca quebre compatibilidade retroativa por acidente.',
     'how.label': 'Como funciona',
-    'how.title': 'Uma chamada de API.\nOutput garantido.',
+    'how.title': 'Uma chamada de API.\\nOutput garantido.',
     'how.1.title': 'Você chama o Reliant',
     'how.1.desc': 'Envie seu prompt, schema ID e provedor escolhido. Um endpoint, qualquer LLM.',
     'how.2.title': 'Reliant chama o LLM',
@@ -1299,7 +1562,7 @@ const i18n = {
     'how.4.title': 'Tudo logado',
     'how.4.desc': 'Cada tentativa, latência, tokens e erros registrados. Trilha de auditoria completa sempre disponível.',
     'install.label': 'Comece em minutos',
-    'install.title': 'Integre em\nmenos de 10 linhas.',
+    'install.title': 'Integre em\\nmenos de 10 linhas.',
     'install.sub': 'Sem configuração complexa. Sem lock-in. Self-host no Railway em minutos.',
     'install.copy': 'copiar',
     'install.steps': '3 passos para produção',
@@ -1310,7 +1573,7 @@ const i18n = {
     'metrics.3': 'Overhead por chamada',
     'metrics.4': 'Provedores suportados',
     'pricing.label': 'Preços',
-    'pricing.title': 'Simples. Transparente.\nEscale quando precisar.',
+    'pricing.title': 'Simples. Transparente.\\nEscale quando precisar.',
     'pricing.free': 'Grátis',
     'pricing.free.period': 'para sempre · self-hosted',
     'pricing.free.1': 'Até 1.000 execuções/mês',
@@ -1319,7 +1582,7 @@ const i18n = {
     'pricing.free.4': 'SDKs JS + Python',
     'pricing.free.5': 'Suporte OpenAI + Anthropic',
     'pricing.free.6': 'Suporte comunidade',
-    'pricing.free.cta': 'Criar conta grátis →',
+    'pricing.free.cta': 'Deploy no Railway →',
     'pricing.pro.badge': 'Mais popular',
     'pricing.pro.period': 'por projeto · cloud gerenciado',
     'pricing.pro.1': 'Execuções ilimitadas',
@@ -1337,7 +1600,7 @@ const i18n = {
     'pricing.ent.4': 'Deploy on-premise',
     'pricing.ent.5': 'Suporte dedicado',
     'pricing.ent.cta': 'Fale conosco →',
-    'cta.title': 'Pare de babysitting\nseus outputs de LLM.',
+    'cta.title': 'Pare de babysitting\\nseus outputs de LLM.',
     'cta.sub': 'Comece com o plano gratuito. Self-host em minutos. Escale quando precisar.',
     'cta.cta1': 'Começar de graça →',
     'cta.cta2': 'Fale conosco',
@@ -1358,24 +1621,24 @@ const i18n = {
     'logos.label': 'Works with any LLM provider',
     'logos.any': 'Any LLM API',
     'problem.label': 'The problem',
-    'problem.title': 'LLMs break pipelines.\nEvery day.',
-    'problem.sub': 'JSON that doesn\'t parse. Schemas that fail validation. Zero visibility into what went wrong.',
+    'problem.title': 'LLMs break pipelines.\\nEvery day.',
+    'problem.sub': 'JSON that doesn\\'t parse. Schemas that fail validation. Zero visibility into what went wrong.',
     'problem.1.title': 'Malformed JSON crashes your app',
     'problem.1.desc': 'LLMs return valid text but invalid JSON. One bad response breaks the entire pipeline.',
     'problem.2.title': 'Manual retry is fragile',
-    'problem.2.desc': 'Developers write custom retry logic for every project. It\'s inconsistent and untested.',
+    'problem.2.desc': 'Developers write custom retry logic for every project. It\\'s inconsistent and untested.',
     'problem.3.title': 'Zero visibility in production',
-    'problem.3.desc': 'You don\'t know which schemas fail most, when drift happens, or why outputs change over time.',
+    'problem.3.desc': 'You don\\'t know which schemas fail most, when drift happens, or why outputs change over time.',
     'problem.4.title': 'Providers behave differently',
     'problem.4.desc': 'OpenAI, Anthropic and Gemini handle structured outputs differently. Cross-provider is a nightmare.',
     'features.label': 'The solution',
-    'features.title': 'Everything your LLM pipeline needs.\nNothing it doesn\'t.',
+    'features.title': 'Everything your LLM pipeline needs.\\nNothing it doesn\\'t.',
     'f1.title': 'Structured Output Engine',
     'f1.desc': 'Define JSON schemas once. Reliant guarantees every LLM response matches — or retries automatically with a corrected prompt.',
     'f2.title': 'Intelligent Retry',
     'f2.desc': 'Failed validation? Reliant rewrites the prompt with the exact errors, reduces temperature, and retries up to 3x before falling back safely.',
     'f3.title': 'Full Observability',
-    'f3.desc': 'Every execution logged. Success rates, latency, tokens, and drift tracked per schema. Know exactly what\'s happening in production.',
+    'f3.desc': 'Every execution logged. Success rates, latency, tokens, and drift tracked per schema. Know exactly what\\'s happening in production.',
     'f4.title': 'Provider Agnostic',
     'f4.desc': 'OpenAI, Anthropic, Gemini — one API to rule them all. Switch providers without changing your application code.',
     'f5.title': 'Safe Fallbacks',
@@ -1383,7 +1646,7 @@ const i18n = {
     'f6.title': 'Schema Registry',
     'f6.desc': 'Version your output contracts. Track changes over time. Never break backward compatibility by accident.',
     'how.label': 'How it works',
-    'how.title': 'One API call.\nGuaranteed output.',
+    'how.title': 'One API call.\\nGuaranteed output.',
     'how.1.title': 'You call Reliant',
     'how.1.desc': 'Send your prompt, schema ID, and chosen provider. One endpoint, any LLM.',
     'how.2.title': 'Reliant calls the LLM',
@@ -1396,7 +1659,7 @@ const i18n = {
     'how.4.title': 'Everything logged',
     'how.4.desc': 'Every attempt, latency, tokens, and errors recorded. Full audit trail always available.',
     'install.label': 'Get started in minutes',
-    'install.title': 'Integrate in\nunder 10 lines.',
+    'install.title': 'Integrate in\\nunder 10 lines.',
     'install.sub': 'No complex setup. No vendor lock-in. Self-host on Railway in minutes.',
     'install.copy': 'copy',
     'install.steps': '3 steps to production',
@@ -1407,7 +1670,7 @@ const i18n = {
     'metrics.3': 'Overhead per call',
     'metrics.4': 'Providers supported',
     'pricing.label': 'Pricing',
-    'pricing.title': 'Simple. Transparent.\nScale when you\'re ready.',
+    'pricing.title': 'Simple. Transparent.\\nScale when you\\'re ready.',
     'pricing.free': 'Free',
     'pricing.free.period': 'forever · self-hosted',
     'pricing.free.1': 'Up to 1,000 executions/mo',
@@ -1416,7 +1679,7 @@ const i18n = {
     'pricing.free.4': 'JS + Python SDKs',
     'pricing.free.5': 'OpenAI + Anthropic support',
     'pricing.free.6': 'Community support',
-    'pricing.free.cta': 'Create free account →',
+    'pricing.free.cta': 'Deploy on Railway →',
     'pricing.pro.badge': 'Most popular',
     'pricing.pro.period': 'per project · managed cloud',
     'pricing.pro.1': 'Unlimited executions',
@@ -1434,7 +1697,7 @@ const i18n = {
     'pricing.ent.4': 'On-premise deployment',
     'pricing.ent.5': 'Dedicated support',
     'pricing.ent.cta': 'Talk to us →',
-    'cta.title': 'Stop babysitting\nyour LLM outputs.',
+    'cta.title': 'Stop babysitting\\nyour LLM outputs.',
     'cta.sub': 'Start with the free tier. Self-host in minutes. Scale when you need to.',
     'cta.cta1': 'Start building for free →',
     'cta.cta2': 'Talk to us',
@@ -1504,269 +1767,7 @@ function copyInstall() {
     btn.style.color = ''
   }, 2000)
 }
-</script>
-` }} />
-      <script dangerouslySetInnerHTML={{ __html: `
-// TRANSLATIONS
-const i18n = {
-  pt: {
-    'nav.features': 'Funcionalidades',
-    'nav.how': 'Como funciona',
-    'nav.pricing': 'Preços',
-    'nav.cta': 'Começar →',
-    'hero.badge': 'Disponível agora — reliant-js v1.0.0',
-    'hero.title1': 'Seu pipeline de IA,',
-    'hero.title2': 'finalmente confiável.',
-    'hero.sub': 'Reliant fica entre seu app e qualquer LLM. Outputs estruturados garantidos, retry inteligente e observabilidade completa — para seus pipelines de IA funcionarem em produção.',
-    'hero.cta1': 'Começar a construir →',
-    'hero.cta2': 'Ver como funciona',
-    'logos.label': 'Compatível com qualquer provedor de LLM',
-    'logos.any': 'Qualquer API de LLM',
-    'problem.label': 'O problema',
-    'problem.title': 'LLMs quebram pipelines.\nTodo dia.',
-    'problem.sub': 'JSON que não parseia. Schemas que falham na validação. Zero visibilidade do que deu errado.',
-    'problem.1.title': 'JSON malformado derruba seu app',
-    'problem.1.desc': 'LLMs retornam texto válido mas JSON inválido. Uma resposta ruim quebra o pipeline inteiro.',
-    'problem.2.title': 'Retry manual é frágil',
-    'problem.2.desc': 'Devs escrevem lógica de retry customizada em cada projeto. É inconsistente e sem testes.',
-    'problem.3.title': 'Zero visibilidade em produção',
-    'problem.3.desc': 'Você não sabe quais schemas falham mais, quando drift acontece, ou por que os outputs mudam.',
-    'problem.4.title': 'Provedores se comportam diferente',
-    'problem.4.desc': 'OpenAI, Anthropic e Gemini tratam outputs estruturados de formas diferentes. Cross-provider é um pesadelo.',
-    'features.label': 'A solução',
-    'features.title': 'Tudo que seu pipeline de IA precisa.\nNada que não precisa.',
-    'f1.title': 'Structured Output Engine',
-    'f1.desc': 'Defina JSON schemas uma vez. Reliant garante que toda resposta do LLM bate — ou faz retry automaticamente com um prompt corrigido.',
-    'f2.title': 'Retry Inteligente',
-    'f2.desc': 'Validação falhou? Reliant reescreve o prompt com os erros exatos, reduz a temperatura e tenta até 3x antes de usar o fallback seguro.',
-    'f3.title': 'Observabilidade Completa',
-    'f3.desc': 'Toda execução logada. Taxa de sucesso, latência, tokens e drift por schema. Saiba exatamente o que acontece em produção.',
-    'f4.title': 'Provider Agnóstico',
-    'f4.desc': 'OpenAI, Anthropic, Gemini — uma API para tudo. Troque de provider sem mudar seu código de aplicação.',
-    'f5.title': 'Safe Fallbacks',
-    'f5.desc': 'Defina o que acontece quando todos os retries falham. Seu app continua rodando com uma resposta previsível e segura.',
-    'f6.title': 'Schema Registry',
-    'f6.desc': 'Versione seus contratos de output. Acompanhe mudanças. Nunca quebre compatibilidade retroativa por acidente.',
-    'how.label': 'Como funciona',
-    'how.title': 'Uma chamada de API.\nOutput garantido.',
-    'how.1.title': 'Você chama o Reliant',
-    'how.1.desc': 'Envie seu prompt, schema ID e provedor escolhido. Um endpoint, qualquer LLM.',
-    'how.2.title': 'Reliant chama o LLM',
-    'how.2.desc': 'Com um system prompt otimizado que força a estrutura do seu schema automaticamente.',
-    'how.3.title': 'Output validado',
-    'how.3.valid': 'Válido?',
-    'how.3.return': 'Retorna imediatamente.',
-    'how.3.invalid': 'Inválido?',
-    'how.3.retry': 'Reescreve prompt + retry.',
-    'how.4.title': 'Tudo logado',
-    'how.4.desc': 'Cada tentativa, latência, tokens e erros registrados. Trilha de auditoria completa sempre disponível.',
-    'install.label': 'Comece em minutos',
-    'install.title': 'Integre em\nmenos de 10 linhas.',
-    'install.sub': 'Sem configuração complexa. Sem lock-in. Self-host no Railway em minutos.',
-    'install.copy': 'copiar',
-    'install.steps': '3 passos para produção',
-    'metrics.label': 'Feito para produção',
-    'metrics.title': 'Números que importam.',
-    'metrics.1': 'Taxa de sucesso',
-    'metrics.2': 'Retries inteligentes',
-    'metrics.3': 'Overhead por chamada',
-    'metrics.4': 'Provedores suportados',
-    'pricing.label': 'Preços',
-    'pricing.title': 'Simples. Transparente.\nEscale quando precisar.',
-    'pricing.free': 'Grátis',
-    'pricing.free.period': 'para sempre · self-hosted',
-    'pricing.free.1': 'Até 1.000 execuções/mês',
-    'pricing.free.2': '1 projeto',
-    'pricing.free.3': 'Dashboard completo',
-    'pricing.free.4': 'SDKs JS + Python',
-    'pricing.free.5': 'Suporte OpenAI + Anthropic',
-    'pricing.free.6': 'Suporte comunidade',
-    'pricing.free.cta': 'Criar conta grátis →',
-    'pricing.pro.badge': 'Mais popular',
-    'pricing.pro.period': 'por projeto · cloud gerenciado',
-    'pricing.pro.1': 'Execuções ilimitadas',
-    'pricing.pro.2': '5 projetos',
-    'pricing.pro.3': 'Observabilidade + alertas',
-    'pricing.pro.4': 'Todos os provedores',
-    'pricing.pro.5': 'Fallback multi-modelo',
-    'pricing.pro.6': 'Suporte prioritário',
-    'pricing.pro.cta': 'Acesso antecipado →',
-    'pricing.ent': 'Sob consulta',
-    'pricing.ent.period': 'volume · on-premise disponível',
-    'pricing.ent.1': 'Tudo ilimitado',
-    'pricing.ent.2': 'Projetos ilimitados',
-    'pricing.ent.3': 'Guardrails customizados',
-    'pricing.ent.4': 'Deploy on-premise',
-    'pricing.ent.5': 'Suporte dedicado',
-    'pricing.ent.cta': 'Fale conosco →',
-    'cta.title': 'Pare de babysitting\nseus outputs de LLM.',
-    'cta.sub': 'Comece com o plano gratuito. Self-host em minutos. Escale quando precisar.',
-    'cta.cta1': 'Começar de graça →',
-    'cta.cta2': 'Fale conosco',
-    'footer.text': 'Reliant · A camada de confiabilidade para produtos com LLM',
-    'footer.contact': 'Contato',
-  },
-  en: {
-    'nav.features': 'Features',
-    'nav.how': 'How it works',
-    'nav.pricing': 'Pricing',
-    'nav.cta': 'Get started →',
-    'hero.badge': 'Now available — reliant-js v1.0.0',
-    'hero.title1': 'Your LLM pipeline,',
-    'hero.title2': 'finally reliable.',
-    'hero.sub': 'Reliant sits between your app and any LLM. Guaranteed structured outputs, intelligent retry, and full observability — so your AI pipelines work in production.',
-    'hero.cta1': 'Start building →',
-    'hero.cta2': 'See how it works',
-    'logos.label': 'Works with any LLM provider',
-    'logos.any': 'Any LLM API',
-    'problem.label': 'The problem',
-    'problem.title': 'LLMs break pipelines.\nEvery day.',
-    'problem.sub': 'JSON that doesn\'t parse. Schemas that fail validation. Zero visibility into what went wrong.',
-    'problem.1.title': 'Malformed JSON crashes your app',
-    'problem.1.desc': 'LLMs return valid text but invalid JSON. One bad response breaks the entire pipeline.',
-    'problem.2.title': 'Manual retry is fragile',
-    'problem.2.desc': 'Developers write custom retry logic for every project. It\'s inconsistent and untested.',
-    'problem.3.title': 'Zero visibility in production',
-    'problem.3.desc': 'You don\'t know which schemas fail most, when drift happens, or why outputs change over time.',
-    'problem.4.title': 'Providers behave differently',
-    'problem.4.desc': 'OpenAI, Anthropic and Gemini handle structured outputs differently. Cross-provider is a nightmare.',
-    'features.label': 'The solution',
-    'features.title': 'Everything your LLM pipeline needs.\nNothing it doesn\'t.',
-    'f1.title': 'Structured Output Engine',
-    'f1.desc': 'Define JSON schemas once. Reliant guarantees every LLM response matches — or retries automatically with a corrected prompt.',
-    'f2.title': 'Intelligent Retry',
-    'f2.desc': 'Failed validation? Reliant rewrites the prompt with the exact errors, reduces temperature, and retries up to 3x before falling back safely.',
-    'f3.title': 'Full Observability',
-    'f3.desc': 'Every execution logged. Success rates, latency, tokens, and drift tracked per schema. Know exactly what\'s happening in production.',
-    'f4.title': 'Provider Agnostic',
-    'f4.desc': 'OpenAI, Anthropic, Gemini — one API to rule them all. Switch providers without changing your application code.',
-    'f5.title': 'Safe Fallbacks',
-    'f5.desc': 'Define what happens when all retries fail. Your app keeps running with a predictable, safe response instead of crashing.',
-    'f6.title': 'Schema Registry',
-    'f6.desc': 'Version your output contracts. Track changes over time. Never break backward compatibility by accident.',
-    'how.label': 'How it works',
-    'how.title': 'One API call.\nGuaranteed output.',
-    'how.1.title': 'You call Reliant',
-    'how.1.desc': 'Send your prompt, schema ID, and chosen provider. One endpoint, any LLM.',
-    'how.2.title': 'Reliant calls the LLM',
-    'how.2.desc': 'With an optimized system prompt that enforces your schema structure automatically.',
-    'how.3.title': 'Output validated',
-    'how.3.valid': 'Valid?',
-    'how.3.return': 'Return immediately.',
-    'how.3.invalid': 'Invalid?',
-    'how.3.retry': 'Rewrite prompt + retry.',
-    'how.4.title': 'Everything logged',
-    'how.4.desc': 'Every attempt, latency, tokens, and errors recorded. Full audit trail always available.',
-    'install.label': 'Get started in minutes',
-    'install.title': 'Integrate in\nunder 10 lines.',
-    'install.sub': 'No complex setup. No vendor lock-in. Self-host on Railway in minutes.',
-    'install.copy': 'copy',
-    'install.steps': '3 steps to production',
-    'metrics.label': 'Built for production',
-    'metrics.title': 'Numbers that matter.',
-    'metrics.1': 'Output success rate',
-    'metrics.2': 'Intelligent retries',
-    'metrics.3': 'Overhead per call',
-    'metrics.4': 'Providers supported',
-    'pricing.label': 'Pricing',
-    'pricing.title': 'Simple. Transparent.\nScale when you\'re ready.',
-    'pricing.free': 'Free',
-    'pricing.free.period': 'forever · self-hosted',
-    'pricing.free.1': 'Up to 1,000 executions/mo',
-    'pricing.free.2': '1 project',
-    'pricing.free.3': 'Full observability dashboard',
-    'pricing.free.4': 'JS + Python SDKs',
-    'pricing.free.5': 'OpenAI + Anthropic support',
-    'pricing.free.6': 'Community support',
-    'pricing.free.cta': 'Create free account →',
-    'pricing.pro.badge': 'Most popular',
-    'pricing.pro.period': 'per project · managed cloud',
-    'pricing.pro.1': 'Unlimited executions',
-    'pricing.pro.2': '5 projects',
-    'pricing.pro.3': 'Observability + alerts',
-    'pricing.pro.4': 'All providers',
-    'pricing.pro.5': 'Multi-model fallback',
-    'pricing.pro.6': 'Priority support',
-    'pricing.pro.cta': 'Get early access →',
-    'pricing.ent': 'Custom',
-    'pricing.ent.period': 'volume · on-premise available',
-    'pricing.ent.1': 'Unlimited everything',
-    'pricing.ent.2': 'Unlimited projects',
-    'pricing.ent.3': 'Custom guardrails',
-    'pricing.ent.4': 'On-premise deployment',
-    'pricing.ent.5': 'Dedicated support',
-    'pricing.ent.cta': 'Talk to us →',
-    'cta.title': 'Stop babysitting\nyour LLM outputs.',
-    'cta.sub': 'Start with the free tier. Self-host in minutes. Scale when you need to.',
-    'cta.cta1': 'Start building for free →',
-    'cta.cta2': 'Talk to us',
-    'footer.text': 'Reliant · The reliability layer for LLM-powered products',
-    'footer.contact': 'Contact',
-  }
-}
-
-let currentLang = 'pt'
-
-function setLang(lang) {
-  currentLang = lang
-  document.documentElement.lang = lang
-
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n')
-    if (i18n[lang][key]) {
-      el.textContent = i18n[lang][key]
-    }
-  })
-
-  document.querySelectorAll('.lang-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.textContent === lang.toUpperCase())
-  })
-
-  // Sync mobile menu i18n links
-  document.querySelectorAll('.mobile-menu [data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n')
-    if (i18n[lang][key]) el.textContent = i18n[lang][key]
-  })
-
-  document.title = lang === 'pt'
-    ? 'Reliant — A Camada de Confiabilidade para Produtos com LLM'
-    : 'Reliant — The Reliability Layer for LLM-Powered Products'
-
-  localStorage.setItem('reliant_lang', lang)
-}
-
-// Restore saved lang
-const saved = localStorage.getItem('reliant_lang')
-if (saved && saved !== 'pt') setLang(saved)
-
-// Nav scroll
-window.addEventListener('scroll', () => {
-  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 20)
-})
-
-// Reveal on scroll
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach((entry, i) => {
-    if (entry.isIntersecting) {
-      setTimeout(() => entry.target.classList.add('visible'), i * 80)
-      observer.unobserve(entry.target)
-    }
-  })
-}, { threshold: 0.1 })
-document.querySelectorAll('.reveal').forEach(el => observer.observe(el))
-
-// Copy
-function copyInstall() {
-  navigator.clipboard.writeText('npm install reliant-js')
-  const btn = document.getElementById('copy-btn')
-  btn.textContent = currentLang === 'pt' ? 'copiado!' : 'copied!'
-  btn.style.color = 'var(--accent)'
-  setTimeout(() => {
-    btn.textContent = currentLang === 'pt' ? 'copiar' : 'copy'
-    btn.style.color = ''
-  }, 2000)
-}
-` }} />
+</script>` }} />
     </>
   )
 }
