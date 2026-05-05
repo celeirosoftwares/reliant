@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { executeWithReliability } from '../services/execution.js'
+import { checkUsageLimit } from '../middleware/usage.js'
 
 const executeSchema = z.object({
   prompt: z.string().min(1),
@@ -26,6 +27,10 @@ export async function executeRoutes(app: FastifyInstance) {
     }
 
     const { prompt, schema_id, provider, model, user_id, options } = body.data
+
+    // Check usage limit before executing
+    const allowed = await checkUsageLimit(user_id, reply)
+    if (!allowed) return
 
     try {
       const result = await executeWithReliability({
