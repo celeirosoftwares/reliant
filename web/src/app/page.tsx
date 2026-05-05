@@ -961,7 +961,7 @@ console.<span class="c-fn">log</span>(result.<span class="c-key">output</span>)<
 <!-- PROBLEM -->
 <section>
   <div class="section-label" data-i18n="problem.label">O problema</div>
-  <div class="section-title" data-i18n="problem.title">LLMs quebram pipelines.<br>Todo dia.</div>
+  <div class="section-title" data-i18n="problem.title">LLMs quebram pipelines.<br/>Todo dia.</div>
   <p class="section-sub" data-i18n="problem.sub">JSON que não parseia. Schemas que falham na validação. Zero visibilidade do que deu errado.</p>
 
   <div class="problem-grid reveal">
@@ -1027,7 +1027,7 @@ console.<span class="c-fn">log</span>(result.<span class="c-key">output</span>)<
 <!-- FEATURES -->
 <section id="features">
   <div class="section-label reveal" data-i18n="features.label">A solução</div>
-  <div class="section-title reveal" data-i18n="features.title">Tudo que seu pipeline de IA precisa.<br>Nada que não precisa.</div>
+  <div class="section-title reveal" data-i18n="features.title">Tudo que seu pipeline de IA precisa.<br/>Nada que não precisa.<br>Nada que não precisa.</div>
 
   <div class="features-grid reveal">
     <div class="feature-card">
@@ -1068,7 +1068,7 @@ console.<span class="c-fn">log</span>(result.<span class="c-key">output</span>)<
 <!-- HOW -->
 <section id="how">
   <div class="section-label reveal" data-i18n="how.label">Como funciona</div>
-  <div class="section-title reveal" data-i18n="how.title">Uma chamada de API.<br>Output garantido.</div>
+  <div class="section-title reveal" data-i18n="how.title">Uma chamada de API.<br/>Output garantido.<br>Output garantido.</div>
 
   <div class="flow reveal">
     <div class="flow-step">
@@ -1169,7 +1169,7 @@ console.<span class="c-fn">log</span>(result.<span class="c-key">output</span>)<
 <!-- PRICING -->
 <section id="pricing">
   <div class="section-label reveal" data-i18n="pricing.label">Preços</div>
-  <div class="section-title reveal" data-i18n="pricing.title">Simples. Transparente.<br>Escale quando precisar.</div>
+  <div class="section-title reveal" data-i18n="pricing.title">Simples. Transparente.<br/>Escale quando precisar.<br>Escale quando precisar.</div>
 
   <div class="pricing-grid reveal">
     <div class="pricing-card">
@@ -1177,8 +1177,8 @@ console.<span class="c-fn">log</span>(result.<span class="c-key">output</span>)<
       <div class="pricing-price" data-i18n="pricing.free">Grátis</div>
       <div class="pricing-period" data-i18n="pricing.free.period">para sempre · self-hosted</div>
       <ul class="pricing-features">
-        <li data-i18n="pricing.free.1">Até 1.000 execuções/mês</li>
-        <li data-i18n="pricing.free.2">1 projeto</li>
+        <li data-i18n="pricing.free.1">1.000 execuções/mês</li>
+        <li data-i18n="pricing.free.2">Dashboard completo</li>
         <li data-i18n="pricing.free.3">Dashboard completo</li>
         <li data-i18n="pricing.free.4">SDKs JS + Python</li>
         <li data-i18n="pricing.free.5">Suporte OpenAI + Anthropic</li>
@@ -1193,7 +1193,7 @@ console.<span class="c-fn">log</span>(result.<span class="c-key">output</span>)<
       <div class="pricing-period" data-i18n="pricing.pro.period">por projeto · cloud gerenciado</div>
       <ul class="pricing-features">
         <li data-i18n="pricing.pro.1">Execuções ilimitadas</li>
-        <li data-i18n="pricing.pro.2">5 projetos</li>
+        <li data-i18n="pricing.pro.2">250.000 exec/mês</li>
         <li data-i18n="pricing.pro.3">Observabilidade + alertas</li>
         <li data-i18n="pricing.pro.4">Todos os provedores</li>
         <li data-i18n="pricing.pro.5">Fallback multi-modelo</li>
@@ -1208,7 +1208,7 @@ console.<span class="c-fn">log</span>(result.<span class="c-key">output</span>)<
       <div class="pricing-period" data-i18n="pricing.ent.period">volume · on-premise disponível</div>
       <ul class="pricing-features">
         <li data-i18n="pricing.ent.1">Tudo ilimitado</li>
-        <li data-i18n="pricing.ent.2">Projetos ilimitados</li>
+        <li data-i18n="pricing.ent.2">1.000.000 exec/mês</li>
         <li data-i18n="pricing.ent.3">Guardrails customizados</li>
         <li>SSO + RBAC</li>
         <li data-i18n="pricing.ent.4">Deploy on-premise</li>
@@ -1223,7 +1223,7 @@ console.<span class="c-fn">log</span>(result.<span class="c-key">output</span>)<
 <!-- CTA -->
 <div class="cta-section">
   <div class="cta-glow"></div>
-  <div class="cta-title reveal" data-i18n="cta.title">Pare de babysitting<br>seus outputs de LLM.</div>
+  <div class="cta-title reveal" data-i18n="cta.title">Pare de babysitting<br/>seus outputs de LLM.<br>seus outputs de LLM.</div>
   <p class="cta-sub reveal" data-i18n="cta.sub">Comece com o plano gratuito. Self-host em minutos. Escale quando precisar.</p>
   <div class="reveal" style="display:flex; gap:16px; justify-content:center;">
     <a href="/auth/signup" class="btn-primary" data-i18n="cta.cta1">Começar de graça →</a>
