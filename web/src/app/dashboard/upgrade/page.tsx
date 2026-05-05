@@ -11,7 +11,7 @@ const PLANS = [
     name: 'Free',
     price: 0,
     executions: '1.000',
-    features: ['1 projeto', 'Dashboard básico', 'JS + Python SDK', 'Suporte comunidade'],
+    features: ['1.000 execuções/mês', 'Dashboard completo', 'JS + Python SDK', 'Todos os providers', 'Suporte comunidade'],
     highlight: false,
   },
   {
@@ -19,7 +19,7 @@ const PLANS = [
     name: 'Starter',
     price: 29,
     executions: '50.000',
-    features: ['1 projeto', 'Dashboard completo', 'Todos os providers', 'Suporte por email'],
+    features: ['50.000 execuções/mês', 'Dashboard completo', 'Todos os providers', 'Logs 30 dias', 'Suporte por email'],
     highlight: false,
   },
   {
@@ -27,7 +27,7 @@ const PLANS = [
     name: 'Pro',
     price: 99,
     executions: '250.000',
-    features: ['5 projetos', 'Dashboard completo', 'Todos os providers', 'Alertas de falha', 'Suporte prioritário'],
+    features: ['250.000 execuções/mês', 'Dashboard completo', 'Todos os providers', 'Logs 60 dias', 'Alertas de falha', 'Suporte prioritário'],
     highlight: true,
   },
   {
@@ -35,7 +35,7 @@ const PLANS = [
     name: 'Scale',
     price: 299,
     executions: '1.000.000',
-    features: ['Projetos ilimitados', 'Todos os providers', 'Alertas avançados', 'SLA 99.9%', 'Suporte dedicado'],
+    features: ['1.000.000 execuções/mês', 'Todos os providers', 'Logs 90 dias', 'Alertas avançados', 'SLA 99.9%', 'Suporte dedicado'],
     highlight: false,
   },
   {
@@ -43,7 +43,7 @@ const PLANS = [
     name: 'Enterprise',
     price: null,
     executions: 'Ilimitado',
-    features: ['Tudo ilimitado', 'SSO + RBAC', 'On-premise', 'SLA customizado', 'Suporte dedicado'],
+    features: ['Execuções ilimitadas', 'Todos os providers', 'Logs ilimitados', 'SSO + RBAC', 'SLA customizado', 'Suporte dedicado'],
     highlight: false,
   },
 ]
@@ -96,10 +96,16 @@ export default function UpgradePage() {
   async function handleCheckout(planId: string) {
     setCheckoutLoading(planId)
     try {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: planId }),
+        body: JSON.stringify({
+          plan: planId,
+          access_token: session?.access_token,
+        }),
       })
       const data = await res.json()
       if (data.url) window.location.href = data.url
@@ -113,7 +119,14 @@ export default function UpgradePage() {
   async function handlePortal() {
     setPortalLoading(true)
     try {
-      const res = await fetch('/api/stripe/portal', { method: 'POST' })
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+
+      const res = await fetch('/api/stripe/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ access_token: session?.access_token }),
+      })
       const data = await res.json()
       if (data.url) window.location.href = data.url
       else setNotification({ type: 'error', msg: data.error || 'Erro ao abrir portal' })
@@ -133,11 +146,7 @@ export default function UpgradePage() {
         <div className={styles.topbarTitle}>reliant / <span>planos</span></div>
         <div className={styles.topbarRight}>
           {hasSubscription && (
-            <button
-              onClick={handlePortal}
-              disabled={portalLoading}
-              className={styles.btnGhost}
-            >
+            <button onClick={handlePortal} disabled={portalLoading} className={styles.btnGhost}>
               {portalLoading ? 'Abrindo...' : '⚙ Gerenciar assinatura'}
             </button>
           )}
@@ -146,7 +155,6 @@ export default function UpgradePage() {
 
       <div className={styles.content}>
 
-        {/* Notification */}
         {notification && (
           <div style={{
             background: notification.type === 'success' ? 'rgba(0,255,136,0.1)' : 'rgba(255,68,68,0.1)',
@@ -162,7 +170,6 @@ export default function UpgradePage() {
           </div>
         )}
 
-        {/* Usage bar */}
         {usage && (
           <div style={{ background: '#111', border: '1px solid #222', borderRadius: '6px', padding: '20px 24px', marginBottom: '32px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
@@ -233,9 +240,6 @@ export default function UpgradePage() {
                       {plan.price > 0 && <span style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '11px', color: '#555' }}>/mês</span>}
                     </div>
                   )}
-                  <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '11px', color: '#555', marginTop: '4px' }}>
-                    {plan.executions} execuções/mês
-                  </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, marginBottom: '20px' }}>

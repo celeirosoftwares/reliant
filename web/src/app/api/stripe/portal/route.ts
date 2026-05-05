@@ -1,16 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createServerSupabaseClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { access_token } = await request.json()
 
-    if (!user) {
+    if (!access_token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { data: profile } = await supabase
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(access_token)
+
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('stripe_customer_id')
       .eq('id', user.id)
