@@ -4,245 +4,254 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import styles from '@/components/dashboard/Dashboard.module.css'
 
-const DEFAULT_SYSTEM_PROMPT = `You are a data extraction assistant. You MUST respond with ONLY a valid JSON object that strictly follows the provided JSON Schema.
+// Replace the PLANS array in upgrade/page.tsx with this:
 
-Rules:
-- Return ONLY the JSON object, no markdown, no explanation, no code blocks
-- Every required field must be present
-- Data types must match exactly
-- If information is not available, use null for optional fields`
+const PLANS = [
+  {
+    id: 'free',
+    name: 'Free',
+    price: 0,
+    executions: '1.000',
+    features: [
+      '1.000 execuções/mês',
+      'Dashboard completo',
+      'JS + Python SDK',
+      'Todos os providers',
+      'System prompt customizado',
+      'Suporte comunidade',
+    ],
+    highlight: false,
+  },
+  {
+    id: 'starter',
+    name: 'Starter',
+    price: 29,
+    executions: '50.000',
+    features: [
+      '50.000 execuções/mês',
+      'Dashboard completo',
+      'Todos os providers',
+      '⚡ Fallback multi-provider',
+      'System prompt customizado',
+      'Logs 30 dias',
+      'Suporte por email',
+    ],
+    highlight: false,
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    price: 99,
+    executions: '250.000',
+    features: [
+      '250.000 execuções/mês',
+      'Dashboard completo',
+      'Todos os providers',
+      '⚡ Fallback multi-provider',
+      'System prompt customizado',
+      'Alertas de falha',
+      'Logs 60 dias',
+      'Suporte prioritário',
+    ],
+    highlight: true,
+  },
+  {
+    id: 'scale',
+    name: 'Scale',
+    price: 299,
+    executions: '1.000.000',
+    features: [
+      '1.000.000 execuções/mês',
+      'Todos os providers',
+      '⚡ Fallback multi-provider',
+      'System prompt customizado',
+      'Alertas avançados',
+      'Logs 90 dias',
+      'SLA 99.9%',
+      'Suporte dedicado',
+    ],
+    highlight: false,
+  },
+  {
+    id: 'enterprise',
+    name: 'Enterprise',
+    price: null,
+    executions: 'Ilimitado',
+    features: [
+      'Execuções ilimitadas',
+      'Todos os providers',
+      '⚡ Fallback multi-provider',
+      'System prompt customizado',
+      'Logs ilimitados',
+      'SSO + RBAC',
+      'SLA customizado',
+      'Suporte dedicado',
+    ],
+    highlight: false,
+  },
+]
 
-export default function SchemasPage() {
-  const [schemas, setSchemas] = useState<any[]>([])
+export default function UpgradePage() {
+  const [currentPlan, setCurrentPlan] = useState('free')
+  const [usage, setUsage] = useState<{ count: number; limit: number } | null>(null)
   const [loading, setLoading] = useState(true)
-  const [apiKey, setApiKey] = useState('')
-  const [apiUrl, setApiUrl] = useState('')
-  const [showModal, setShowModal] = useState(false)
-  const [editSchema, setEditSchema] = useState<any>(null)
-  const [form, setForm] = useState({
-    name: '',
-    slug: '',
-    description: '',
-    definition: '{\n  "type": "object",\n  "required": ["name"],\n  "properties": {\n    "name": { "type": "string" }\n  }\n}',
-    safe_fallback: '',
-    system_prompt: '',
-  })
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
 
   useEffect(() => {
-    const supabase = createClient()
-    async function init() {
+    async function load() {
+      const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) return
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('reliant_api_key, reliant_api_url')
-        .eq('id', session.user.id)
-        .single()
-      if (profile?.reliant_api_key) {
-        setApiKey(profile.reliant_api_key)
-        setApiUrl(profile.reliant_api_url || 'https://reliant-production.up.railway.app')
-        await loadSchemas(profile.reliant_api_key, profile.reliant_api_url)
+
+      const [profileRes, usageRes] = await Promise.all([
+        supabase.from('profiles').select('plan').eq('id', session.user.id).single(),
+        supabase.from('usage').select('executions_count').eq('user_id', session.user.id).eq('period', new Date().toISOString().slice(0, 7)).single(),
+      ])
+
+      if (profileRes.data) setCurrentPlan(profileRes.data.plan)
+
+      if (usageRes.data) {
+        const plan = PLANS.find(p => p.id === profileRes.data?.plan)
+        const limit = plan?.id === 'enterprise' ? -1 : parseInt(plan?.executions?.replace(/\./g, '') || '1000')
+        setUsage({ count: usageRes.data.executions_count, limit })
       }
+
+      setLoading(false)
     }
-    init()
+    load()
   }, [])
 
-  async function loadSchemas(key: string, url: string) {
-    setLoading(true)
-    try {
-      const res = await fetch(`${url}/schemas`, { headers: { 'X-Reliant-Key': key } })
-      const data = await res.json()
-      setSchemas(data.schemas || [])
-    } catch {}
-    setLoading(false)
-  }
-
-  function openCreate() {
-    setEditSchema(null)
-    setForm({ name: '', slug: '', description: '', definition: '{\n  "type": "object",\n  "required": ["name"],\n  "properties": {\n    "name": { "type": "string" }\n  }\n}', safe_fallback: '', system_prompt: '' })
-    setError('')
-    setShowModal(true)
-  }
-
-  function openEdit(schema: any) {
-    setEditSchema(schema)
-    setForm({
-      name: schema.name || '',
-      slug: schema.slug || '',
-      description: schema.description || '',
-      definition: JSON.stringify(schema.definition, null, 2),
-      safe_fallback: schema.safe_fallback ? JSON.stringify(schema.safe_fallback, null, 2) : '',
-      system_prompt: schema.system_prompt || '',
-    })
-    setError('')
-    setShowModal(true)
-  }
-
-  async function saveSchema() {
-    setSaving(true)
-    setError('')
-
-    let definition, safe_fallback
-    try { definition = JSON.parse(form.definition) } catch { setError('JSON inválido na definição'); setSaving(false); return }
-    try { safe_fallback = form.safe_fallback ? JSON.parse(form.safe_fallback) : undefined } catch { setError('JSON inválido no fallback'); setSaving(false); return }
-
-    const body: any = {
-      name: form.name,
-      slug: form.slug,
-      description: form.description || undefined,
-      definition,
-      safe_fallback,
-      system_prompt: form.system_prompt || undefined,
-    }
-
-    try {
-      const method = editSchema ? 'PUT' : 'POST'
-      const url = editSchema ? `${apiUrl}/schemas/${editSchema.id}` : `${apiUrl}/schemas`
-
-      await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json', 'X-Reliant-Key': apiKey },
-        body: JSON.stringify(body),
-      })
-      setShowModal(false)
-      setSuccess(editSchema ? 'Schema atualizado!' : 'Schema criado!')
-      setTimeout(() => setSuccess(''), 3000)
-      await loadSchemas(apiKey, apiUrl)
-    } catch { setError('Erro ao salvar schema') }
-    setSaving(false)
-  }
-
-  const inputStyle = { width: '100%', background: '#1a1a1a', border: '1px solid #222', borderRadius: '4px', padding: '9px 12px', color: 'var(--text)', fontFamily: 'var(--font-ui-mono)', fontSize: '12px', outline: 'none' }
-  const labelStyle = { fontFamily: 'var(--font-ui-mono)', fontSize: '11px', color: '#888', textTransform: 'uppercase' as const, letterSpacing: '0.06em', display: 'block', marginBottom: '6px' }
+  const usagePercent = usage && usage.limit > 0
+    ? Math.min(100, Math.round((usage.count / usage.limit) * 100))
+    : 0
 
   return (
     <div className={styles.page}>
       <div className={styles.topbar}>
-        <div className={styles.topbarTitle}>reliant / <span>schemas</span></div>
-        <div className={styles.topbarRight}>
-          <div className={styles.statusDot}><span className={styles.dot}></span> API Online</div>
-        </div>
+        <div className={styles.topbarTitle}>reliant / <span>planos</span></div>
       </div>
 
       <div className={styles.content}>
+        {/* Usage bar */}
+        {usage && (
+          <div style={{ background: '#111', border: '1px solid #222', borderRadius: '6px', padding: '20px 24px', marginBottom: '32px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '13px', color: 'var(--text)' }}>
+                Uso este mês
+              </div>
+              <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '13px', color: usagePercent >= 90 ? '#ff4444' : '#888' }}>
+                {usage.count.toLocaleString()} / {usage.limit === -1 ? '∞' : usage.limit.toLocaleString()} execuções
+              </div>
+            </div>
+            <div style={{ background: '#1a1a1a', borderRadius: '100px', height: '6px', overflow: 'hidden' }}>
+              <div style={{
+                height: '100%',
+                borderRadius: '100px',
+                width: `${usagePercent}%`,
+                background: usagePercent >= 90 ? '#ff4444' : usagePercent >= 70 ? '#ffbb00' : 'var(--accent)',
+                transition: 'width 0.3s ease',
+              }} />
+            </div>
+            {usagePercent >= 80 && (
+              <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '11px', color: '#ffbb00', marginTop: '8px' }}>
+                ⚠️ Você está usando {usagePercent}% do seu limite mensal. Considere fazer upgrade.
+              </div>
+            )}
+          </div>
+        )}
+
         <div className={styles.sectionHeader}>
           <div>
-            <div className={styles.sectionTitle}>Schemas</div>
-            <div className={styles.sectionSub}>Defina contratos de output e prompts customizados</div>
+            <div className={styles.sectionTitle}>Planos</div>
+            <div className={styles.sectionSub}>Escale conforme seu uso cresce</div>
           </div>
-          <button className={styles.btnPrimary} onClick={openCreate}>+ Novo Schema</button>
         </div>
 
-        {success && (
-          <div style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: '4px', padding: '10px 16px', fontFamily: 'var(--font-ui-mono)', fontSize: '12px', color: 'var(--accent)', marginBottom: '16px' }}>
-            {success}
-          </div>
-        )}
-
-        {loading ? (
-          <div className={styles.loading}><div className={styles.spinner}></div> Carregando...</div>
-        ) : schemas.length === 0 ? (
-          <div className={styles.emptyState}><div style={{ fontSize: '32px', marginBottom: '12px', opacity: 0.4 }}>📋</div>Nenhum schema ainda. Crie seu primeiro schema.</div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-            {schemas.map(s => (
-              <div key={s.id} style={{ background: '#111', border: '1px solid #222', borderRadius: '4px', padding: '20px', cursor: 'pointer', transition: 'border-color 0.15s' }}
-                onClick={() => openEdit(s)}>
-                <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '14px', fontWeight: 600, color: 'var(--text)', marginBottom: '4px' }}>{s.name}</div>
-                <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '11px', color: '#555', marginBottom: '8px' }}>{s.slug} · v{s.version}</div>
-                {s.system_prompt && (
-                  <div style={{ display: 'inline-flex', padding: '2px 8px', background: 'rgba(68,136,255,0.1)', border: '1px solid rgba(68,136,255,0.2)', borderRadius: '3px', fontFamily: 'var(--font-ui-mono)', fontSize: '10px', color: '#4488ff', marginBottom: '8px' }}>
-                    prompt customizado
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
+          {PLANS.map(plan => {
+            const isCurrent = plan.id === currentPlan
+            return (
+              <div key={plan.id} style={{
+                background: plan.highlight ? '#111' : '#0d0d0d',
+                border: `1px solid ${isCurrent ? 'rgba(0,255,136,0.4)' : plan.highlight ? 'rgba(0,255,136,0.15)' : '#1e1e1e'}`,
+                borderRadius: '6px',
+                padding: '24px 20px',
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+              }}>
+                {plan.highlight && (
+                  <div style={{ position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', background: 'var(--accent)', color: '#000', fontFamily: 'var(--font-ui-mono)', fontSize: '10px', fontWeight: 600, padding: '3px 12px', borderRadius: '100px', whiteSpace: 'nowrap' }}>
+                    Mais popular
                   </div>
                 )}
-                <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '11px', color: '#555' }}>ID: {s.id.substring(0, 12)}...</div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
 
-      {/* Modal */}
-      {showModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: '#111', border: '1px solid #2a2a2a', borderRadius: '6px', width: '640px', maxWidth: '95vw', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid #222', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, background: '#111', zIndex: 1 }}>
-              <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '14px', fontWeight: 600, color: 'var(--text)' }}>
-                {editSchema ? `Editar Schema — ${editSchema.name}` : 'Criar Schema'}
-              </div>
-              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: '#555', cursor: 'pointer', fontSize: '18px' }}>×</button>
-            </div>
+                {isCurrent && (
+                  <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '100px', fontFamily: 'var(--font-ui-mono)', fontSize: '9px', color: 'var(--accent)', padding: '2px 8px' }}>
+                    Atual
+                  </div>
+                )}
 
-            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '15px', fontWeight: 600, color: 'var(--text)', marginBottom: '8px' }}>{plan.name}</div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div>
-                  <label style={labelStyle}>Nome</label>
-                  <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value, slug: e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') }))} style={inputStyle} placeholder="Contact Extraction" />
+                <div style={{ marginBottom: '16px' }}>
+                  {plan.price === null ? (
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 800, color: 'var(--text)' }}>Custom</div>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                      <span style={{ fontFamily: 'var(--font-display)', fontSize: '28px', fontWeight: 800, color: plan.price === 0 ? '#888' : 'var(--text)' }}>
+                        {plan.price === 0 ? 'Grátis' : `$${plan.price}`}
+                      </span>
+                      {plan.price > 0 && <span style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '11px', color: '#555' }}>/mês</span>}
+                    </div>
+                  )}
+                  <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '11px', color: '#555', marginTop: '4px' }}>
+                    {plan.executions} execuções/mês
+                  </div>
                 </div>
-                <div>
-                  <label style={labelStyle}>Slug</label>
-                  <input value={form.slug} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))} style={inputStyle} placeholder="contact-extraction" />
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, marginBottom: '20px' }}>
+                  {plan.features.map(f => (
+                    <div key={f} style={{ display: 'flex', gap: '8px', fontFamily: 'var(--font-ui-mono)', fontSize: '11px', color: '#666' }}>
+                      <span style={{ color: 'var(--accent)', flexShrink: 0 }}>→</span>
+                      {f}
+                    </div>
+                  ))}
                 </div>
+
+                <button
+                  disabled={isCurrent}
+                  onClick={() => {
+                    if (plan.id === 'enterprise') {
+                      window.open('mailto:hello@reliant.dev?subject=Enterprise Plan', '_blank')
+                    } else if (!isCurrent) {
+                      alert('Integração com pagamento em breve. Entre em contato: hello@reliant.dev')
+                    }
+                  }}
+                  style={{
+                    padding: '9px 12px',
+                    background: isCurrent ? 'transparent' : plan.highlight ? 'var(--accent)' : '#1a1a1a',
+                    color: isCurrent ? '#555' : plan.highlight ? '#000' : '#888',
+                    border: `1px solid ${isCurrent ? '#222' : plan.highlight ? 'var(--accent)' : '#2a2a2a'}`,
+                    borderRadius: '4px',
+                    fontFamily: 'var(--font-ui-mono)',
+                    fontSize: '11px',
+                    fontWeight: plan.highlight ? 600 : 400,
+                    cursor: isCurrent ? 'default' : 'pointer',
+                    transition: 'all 0.15s',
+                    width: '100%',
+                  }}
+                >
+                  {isCurrent ? 'Plano atual' : plan.cta}
+                </button>
               </div>
-
-              <div>
-                <label style={labelStyle}>Descrição (opcional)</label>
-                <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} style={inputStyle} placeholder="Extrai dados de contato de texto livre" />
-              </div>
-
-              <div>
-                <label style={labelStyle}>Definição JSON Schema</label>
-                <textarea value={form.definition} onChange={e => setForm(f => ({ ...f, definition: e.target.value }))} style={{ ...inputStyle, minHeight: '140px', resize: 'vertical', lineHeight: 1.6 }} />
-                <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '10px', color: '#444', marginTop: '4px' }}>JSON Schema draft-7 format</div>
-              </div>
-
-              <div>
-                <label style={labelStyle}>Safe Fallback (opcional)</label>
-                <textarea value={form.safe_fallback} onChange={e => setForm(f => ({ ...f, safe_fallback: e.target.value }))} style={{ ...inputStyle, minHeight: '60px', resize: 'vertical', lineHeight: 1.6 }} placeholder='{ "name": null }' />
-                <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '10px', color: '#444', marginTop: '4px' }}>Retornado quando todos os retries falham</div>
-              </div>
-
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <label style={{ ...labelStyle, marginBottom: 0 }}>System Prompt (opcional)</label>
-                  <button
-                    onClick={() => setForm(f => ({ ...f, system_prompt: f.system_prompt ? '' : DEFAULT_SYSTEM_PROMPT }))}
-                    style={{ background: 'none', border: '1px solid #222', borderRadius: '3px', padding: '3px 8px', fontFamily: 'var(--font-ui-mono)', fontSize: '10px', color: '#555', cursor: 'pointer' }}
-                  >
-                    {form.system_prompt ? 'Limpar' : 'Usar padrão'}
-                  </button>
-                </div>
-                <textarea
-                  value={form.system_prompt}
-                  onChange={e => setForm(f => ({ ...f, system_prompt: e.target.value }))}
-                  style={{ ...inputStyle, minHeight: '120px', resize: 'vertical', lineHeight: 1.6 }}
-                  placeholder={`Deixe vazio para usar o prompt padrão do Reliant.\n\nOu personalize:\nYou are a specialized assistant for extracting invoice data...`}
-                />
-                <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '10px', color: '#444', marginTop: '4px' }}>
-                  Se preenchido, substitui o system prompt padrão do Reliant. O schema JSON será injetado automaticamente.
-                </div>
-              </div>
-
-              {error && (
-                <div style={{ background: 'rgba(255,68,85,0.1)', border: '1px solid rgba(255,68,85,0.3)', borderRadius: '4px', padding: '10px 12px', fontSize: '12px', color: '#ff4455', fontFamily: 'var(--font-ui-mono)' }}>
-                  {error}
-                </div>
-              )}
-            </div>
-
-            <div style={{ padding: '16px 24px', borderTop: '1px solid #222', display: 'flex', justifyContent: 'flex-end', gap: '8px', position: 'sticky', bottom: 0, background: '#111' }}>
-              <button onClick={() => setShowModal(false)} style={{ padding: '8px 14px', background: 'transparent', color: '#888', border: '1px solid #222', borderRadius: '4px', fontFamily: 'var(--font-ui-mono)', fontSize: '12px', cursor: 'pointer' }}>Cancelar</button>
-              <button onClick={saveSchema} disabled={saving} className={styles.btnPrimary}>
-                {saving ? 'Salvando...' : editSchema ? 'Salvar alterações' : 'Criar Schema'}
-              </button>
-            </div>
-          </div>
+            )
+          })}
         </div>
-      )}
+
+        <div style={{ marginTop: '24px', background: 'rgba(0,255,136,0.04)', border: '1px solid rgba(0,255,136,0.1)', borderRadius: '6px', padding: '16px 20px', fontFamily: 'var(--font-ui-mono)', fontSize: '12px', color: '#555', lineHeight: 1.7 }}>
+          💡 <strong style={{ color: '#888' }}>Cada chamada ao /execute conta como 1 execução</strong>, independente do número de retries. O contador reseta no primeiro dia de cada mês.
+        </div>
+      </div>
     </div>
   )
 }
