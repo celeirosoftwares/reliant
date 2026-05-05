@@ -1,32 +1,28 @@
 import { FastifyInstance } from 'fastify'
-import { z } from 'zod'
 import { executeWithReliability } from '../services/execution.js'
 import { checkUsageLimit } from '../middleware/usage.js'
-
-const executeSchema = z.object({
-  prompt: z.string().min(1),
-  schema_id: z.string().min(1),
-  provider: z.enum(['anthropic', 'openai', 'gemini', 'groq', 'mistral']),
-  model: z.string().min(1),
-  user_id: z.string().min(1),
-  options: z.object({
-    max_retries: z.number().min(1).max(5).optional(),
-  }).optional(),
-})
 
 export async function executeRoutes(app: FastifyInstance) {
   app.post('/execute', async (req, reply) => {
     const project = (req as any).project
+    const body = req.body as any
 
-    const body = executeSchema.safeParse(req.body)
-    if (!body.success) {
+    const { prompt, schema_id, provider, model, user_id, options } = body
+
+    if (!prompt || !schema_id || !provider || !model || !user_id) {
       return reply.status(400).send({
         error: 'Validation Error',
-        details: body.error.flatten(),
+        message: 'prompt, schema_id, provider, model, and user_id are required',
       })
     }
 
-    const { prompt, schema_id, provider, model, user_id, options } = body.data
+    const validProviders = ['anthropic', 'openai', 'gemini', 'groq', 'mistral']
+    if (!validProviders.includes(provider)) {
+      return reply.status(400).send({
+        error: 'Validation Error',
+        message: `provider must be one of: ${validProviders.join(', ')}`,
+      })
+    }
 
     // Check usage limit before executing
     const allowed = await checkUsageLimit(user_id, reply)

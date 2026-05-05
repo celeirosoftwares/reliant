@@ -39,7 +39,7 @@ async function callAnthropic(req: LLMRequest): Promise<LLMResponse> {
 
   const content = response.content
     .filter((b) => b.type === 'text')
-    .map((b) => (b as any).text)
+    .map((b) => (b as { type: 'text'; text: string }).text)
     .join('')
 
   return {
@@ -105,7 +105,7 @@ async function callGroq(req: LLMRequest): Promise<LLMResponse> {
     }),
   })
 
-  const data = await response.json()
+  const data = await response.json() as { choices: Array<{ message: { content: string } }>; usage: { total_tokens: number }; error?: { message: string } }
   if (!response.ok) throw new Error(data.error?.message || 'Groq API error')
 
   return {
@@ -132,7 +132,7 @@ async function callMistral(req: LLMRequest): Promise<LLMResponse> {
     }),
   })
 
-  const data = await response.json()
+  const data = await response.json() as { choices: Array<{ message: { content: string } }>; usage: { total_tokens: number }; message?: string }
   if (!response.ok) throw new Error(data.message || 'Mistral API error')
 
   return {

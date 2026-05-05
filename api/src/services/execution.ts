@@ -1,5 +1,4 @@
 import { callLLM, Provider } from '../lib/llm.js'
-import { validateOutput, parseJsonOutput } from '../lib/validator.js'
 import { prisma } from '../lib/prisma.js'
 
 const SUPABASE_URL = process.env.SUPABASE_URL!
@@ -27,6 +26,15 @@ export interface ExecuteResult {
 
 const MAX_RETRIES = 3
 
+interface ProviderKeyRow {
+  encrypted_key: string
+}
+
+interface ValidationResult {
+  valid: boolean
+  errors: string[]
+}
+
 async function getUserProviderKey(userId: string, provider: string): Promise<string | null> {
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/provider_keys?user_id=eq.${userId}&provider=eq.${provider}&is_active=eq.true&select=encrypted_key`,
@@ -39,24 +47,53 @@ async function getUserProviderKey(userId: string, provider: string): Promise<str
   )
 
   if (!res.ok) return null
-
-  const data = await res.json()
+  const data = await res.json() as ProviderKeyRow[]
   if (!data || data.length === 0) return null
-
   return data[0].encrypted_key
+}
+
+function validateOutput(output: unknown, schema: unknown): ValidationResult {
+  try {
+    const Ajv = require('ajv')
+    const ajv = new Ajv({ allErrors: true })
+    const validate = ajv.compile(schema)
+    const valid = validate(output)
+    if (valid) return { valid: true, errors: [] }
+    const errors = (validate.errors || []).map((e: any) => `${e.instancePath} ${e.message}`.trim())
+    return { valid: false, errors }
+  } catch {
+    return { valid: false, errors: ['Schema validation failed'] }
+  }
+}
+
+function parseJsonOutput(content: string): unknown | null {
+  try {
+    // Try direct parse
+    return JSON.parse(content)
+  } catch {
+    // Try to extract JSON from markdown code blocks
+    const match = content.match(/```(?:json)?\s*([\s\S]*?)```/)
+    if (match) {
+      try { return JSON.parse(match[1]) } catch {}
+    }
+    // Try to find JSON object in the content
+    const jsonMatch = content.match(/\{[\s\S]*\}/)
+    if (jsonMatch) {
+      try { return JSON.parse(jsonMatch[0]) } catch {}
+    }
+    return null
+  }
 }
 
 export async function executeWithReliability(opts: ExecuteOptions): Promise<ExecuteResult> {
   const startTime = Date.now()
   const maxRetries = opts.maxRetries ?? MAX_RETRIES
 
-  // Fetch user's API key for this provider
   const providerKey = await getUserProviderKey(opts.userId, opts.provider)
   if (!providerKey) {
-    throw new Error(`No API key configured for provider "${opts.provider}". Please add your key in the Providers settings.`)
+    throw new Error(`No API key configured for provider "${opts.provider}". Please add your key in Providers settings.`)
   }
 
-  // Fetch schema
   const schema = await prisma.schema.findFirst({
     where: { id: opts.schemaId, projectId: opts.projectId },
     orderBy: { version: 'desc' },
@@ -67,13 +104,14 @@ export async function executeWithReliability(opts: ExecuteOptions): Promise<Exec
   }
 
   const schemaDefinition = schema.definition as object
+  const systemPromptOverride = (schema as any).systemPrompt as string | null
   let lastValidationErrors: string[] = []
   let totalTokens = 0
   let attempts = 0
   let finalOutput: unknown = null
   let status: 'SUCCESS' | 'FALLBACK' | 'FAILED' = 'FAILED'
 
-  const baseSystemPrompt = buildSystemPrompt(schemaDefinition)
+  const baseSystemPrompt = systemPromptOverride || buildSystemPrompt(schemaDefinition)
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     attempts = attempt
@@ -82,7 +120,7 @@ export async function executeWithReliability(opts: ExecuteOptions): Promise<Exec
       const systemPrompt =
         attempt === 1
           ? baseSystemPrompt
-          : buildRetrySystemPrompt(schemaDefinition, lastValidationErrors, attempt)
+          : buildRetrySystemPrompt(schemaDefinition, lastValidationErrors, attempt, maxRetries)
 
       const temperature = attempt === 1 ? 0.2 : attempt === 2 ? 0.1 : 0.0
 
@@ -137,7 +175,7 @@ export async function executeWithReliability(opts: ExecuteOptions): Promise<Exec
       latencyMs,
       tokensUsed: totalTokens,
       inputPrompt: opts.prompt,
-      output: finalOutput ?? undefined,
+      output: finalOutput as any ?? undefined,
       validationErrors: lastValidationErrors.length > 0 ? lastValidationErrors : undefined,
     },
   })
@@ -165,7 +203,7 @@ Rules:
 - If information is not available, use null for optional fields`
 }
 
-function buildRetrySystemPrompt(schema: object, previousErrors: string[], attempt: number): string {
+function buildRetrySystemPrompt(schema: object, previousErrors: string[], attempt: number, maxRetries: number): string {
   return `You are a data extraction assistant. Your previous response had validation errors.
 
 Validation errors from previous attempt:
@@ -175,7 +213,7 @@ You MUST respond with ONLY a valid JSON object that strictly follows this JSON S
 
 ${JSON.stringify(schema, null, 2)}
 
-${attempt === MAX_RETRIES ? 'CRITICAL: This is your final attempt. Focus on returning the most minimal valid JSON possible.' : ''}
+${attempt === maxRetries ? 'CRITICAL: This is your final attempt. Focus on returning the most minimal valid JSON possible.' : ''}
 
 Rules:
 - Return ONLY the JSON object, no markdown, no explanation, no code blocks

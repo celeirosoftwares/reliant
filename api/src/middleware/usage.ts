@@ -1,7 +1,14 @@
-import { FastifyRequest, FastifyReply } from 'fastify'
+import { FastifyReply } from 'fastify'
 
 const SUPABASE_URL = process.env.SUPABASE_URL!
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+interface UsageResult {
+  count: number
+  limit: number
+  plan: string
+  allowed: boolean
+}
 
 export async function checkUsageLimit(
   userId: string,
@@ -27,10 +34,10 @@ export async function checkUsageLimit(
 
   if (!res.ok) {
     console.error('Usage check failed:', await res.text())
-    return true // fail open — don't block if usage check fails
+    return true // fail open
   }
 
-  const data = await res.json()
+  const data = await res.json() as UsageResult
 
   if (!data.allowed) {
     reply.status(429).send({
