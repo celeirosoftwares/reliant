@@ -240,7 +240,7 @@ if (saved && saved !== 'pt') setLang(saved)
 
 // Nav scroll
 window.addEventListener('scroll', () => {
-  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 20)
+  document.getElementById('nav')?.classList.toggle('scrolled', window.scrollY > 20)
 })
 
 // Reveal on scroll
