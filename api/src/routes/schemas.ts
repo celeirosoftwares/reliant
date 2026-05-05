@@ -10,12 +10,13 @@ export async function schemasRoutes(server: FastifyInstance) {
 
   // Create a new schema
   server.post('/', async (request, reply) => {
-    const { name, slug, description, definition, safe_fallback } = request.body as {
+    const { name, slug, description, definition, safe_fallback, system_prompt } = request.body as {
       name?: string
       slug?: string
       description?: string
       definition?: unknown
       safe_fallback?: unknown
+      system_prompt?: string
     }
 
     if (!name || !slug || !definition) {
@@ -39,7 +40,6 @@ export async function schemasRoutes(server: FastifyInstance) {
       })
     }
 
-    // Check for existing schema with same slug to determine version
     const existing = await prisma.schema.findFirst({
       where: { projectId: request.project!.id, slug },
       orderBy: { version: 'desc' },
@@ -56,6 +56,7 @@ export async function schemasRoutes(server: FastifyInstance) {
         description: description?.trim() ?? null,
         definition: definition as any,
         safeFallback: safe_fallback as any ?? null,
+        systemPrompt: system_prompt?.trim() ?? null,
       },
     })
 
@@ -69,7 +70,6 @@ export async function schemasRoutes(server: FastifyInstance) {
       orderBy: { createdAt: 'desc' },
     })
 
-    // Group by slug, keep only latest version
     const latestBySlug = new Map<string, typeof schemas[0]>()
     for (const schema of schemas) {
       const existing = latestBySlug.get(schema.slug)
@@ -104,11 +104,12 @@ export async function schemasRoutes(server: FastifyInstance) {
       return reply.status(404).send({ error: 'Schema not found' })
     }
 
-    const { name, description, definition, safe_fallback } = request.body as {
+    const { name, description, definition, safe_fallback, system_prompt } = request.body as {
       name?: string
       description?: string
       definition?: unknown
       safe_fallback?: unknown
+      system_prompt?: string
     }
 
     if (definition && !isValidJsonSchema(definition)) {
@@ -118,7 +119,6 @@ export async function schemasRoutes(server: FastifyInstance) {
       })
     }
 
-    // Get latest version for this slug
     const latest = await prisma.schema.findFirst({
       where: { projectId: request.project!.id, slug: existing.slug },
       orderBy: { version: 'desc' },
@@ -135,6 +135,7 @@ export async function schemasRoutes(server: FastifyInstance) {
         description: description?.trim() ?? existing.description,
         definition: (definition as any) ?? existing.definition,
         safeFallback: safe_fallback !== undefined ? (safe_fallback as any) : existing.safeFallback,
+        systemPrompt: system_prompt !== undefined ? (system_prompt?.trim() ?? null) : (existing as any).systemPrompt,
       },
     })
 
@@ -187,6 +188,7 @@ function formatSchema(schema: any) {
     description: schema.description,
     definition: schema.definition,
     safe_fallback: schema.safeFallback,
+    system_prompt: schema.systemPrompt ?? null,
     is_active: schema.isActive,
     created_at: schema.createdAt.toISOString(),
   }
