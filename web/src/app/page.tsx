@@ -206,7 +206,7 @@ const i18n = {
 
 let currentLang = 'pt'
 
-function setLang(lang) {
+function setLang(lang: string) {
   currentLang = lang
   document.documentElement.lang = lang
 
@@ -1708,7 +1708,7 @@ const i18n = {
 
 let currentLang = 'pt'
 
-function setLang(lang) {
+function setLang(lang: string) {
   currentLang = lang
   document.documentElement.lang = lang
 
