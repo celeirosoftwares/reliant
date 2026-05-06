@@ -77,7 +77,7 @@ export default function SettingsPage() {
           </div>
 
           <CopyField label="Reliant API Key" value={profile?.reliant_api_key || ''} fieldKey="apikey" secret />
-          <CopyField label="User ID (Supabase)" value={userId} fieldKey="userid" />
+          <CopyField label="User ID" value={userId} fieldKey="userid" />
         </div>
 
         {/* Endpoints */}
