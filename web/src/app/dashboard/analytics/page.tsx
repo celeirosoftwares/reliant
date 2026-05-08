@@ -87,9 +87,9 @@ export default function AnalyticsPage() {
     try {
       const headers = { 'X-Reliant-Key': apiKey }
       const [summaryRes, schemasRes, providersRes] = await Promise.all([
-        fetch(`${apiUrl}/metrics/summary?days=${period}`, { headers }),
-        fetch(`${apiUrl}/metrics/by-schema?days=${period}`, { headers }),
-        fetch(`${apiUrl}/metrics/by-provider?days=${period}`, { headers }),
+        fetch(`${apiUrl}/analytics/summary?days=${period}`, { headers }),
+        fetch(`${apiUrl}/analytics/by-schema?days=${period}`, { headers }),
+        fetch(`${apiUrl}/analytics/by-provider?days=${period}`, { headers }),
       ])
       const [s, sc, pr] = await Promise.all([summaryRes.json(), schemasRes.json(), providersRes.json()])
       setSummary(s)

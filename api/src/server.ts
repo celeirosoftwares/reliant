@@ -20,17 +20,12 @@ const server = Fastify({
 })
 
 async function start() {
-  await server.register(cors, {
-    origin: true,
-    credentials: true,
-  })
+  await server.register(cors, { origin: true, credentials: true })
 
   await server.register(rateLimit, {
     max: parseInt(process.env.RATE_LIMIT_MAX ?? '100'),
     timeWindow: parseInt(process.env.RATE_LIMIT_WINDOW_MS ?? '60000'),
-    keyGenerator: (req) => {
-      return req.headers['x-reliant-key'] as string || req.ip
-    },
+    keyGenerator: (req) => req.headers['x-reliant-key'] as string || req.ip,
   })
 
   server.get('/health', async () => ({
@@ -44,7 +39,7 @@ async function start() {
   await server.register(executeRoutes)
   await server.register(executionsRoutes, { prefix: '/executions' })
   await server.register(metricsRoutes, { prefix: '/metrics' })
-  await server.register(analyticsRoutes)
+  await server.register(analyticsRoutes, { prefix: '/analytics' })
 
   const port = parseInt(process.env.PORT ?? '3100')
   const host = process.env.HOST ?? '0.0.0.0'

@@ -33,7 +33,7 @@ export async function analyticsRoutes(server: FastifyInstance) {
   server.addHook('onRequest', authMiddleware)
 
   // Summary metrics
-  server.get<{ Querystring: { days?: string } }>('/metrics/summary', async (request) => {
+  server.get<{ Querystring: { days?: string } }>('/summary', async (request) => {
     const days = parseInt(request.query.days || '30')
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
 
@@ -94,7 +94,7 @@ export async function analyticsRoutes(server: FastifyInstance) {
   })
 
   // Success rate by schema
-  server.get<{ Querystring: { days?: string } }>('/metrics/by-schema', async (request) => {
+  server.get<{ Querystring: { days?: string } }>('/by-schema', async (request) => {
     const days = parseInt(request.query.days || '30')
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
 
@@ -139,7 +139,7 @@ export async function analyticsRoutes(server: FastifyInstance) {
   })
 
   // Success rate by provider
-  server.get<{ Querystring: { days?: string } }>('/metrics/by-provider', async (request) => {
+  server.get<{ Querystring: { days?: string } }>('/by-provider', async (request) => {
     const days = parseInt(request.query.days || '30')
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
 
