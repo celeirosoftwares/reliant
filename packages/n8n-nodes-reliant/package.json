@@ -1,0 +1,41 @@
+{
+  "name": "n8n-nodes-reliant",
+  "version": "1.0.1",
+  "description": "n8n community node for Reliant — LLM Reliability Layer. Guaranteed structured outputs from any LLM.",
+  "keywords": [
+    "n8n-community-node-package",
+    "reliant",
+    "llm",
+    "ai",
+    "structured-output",
+    "anthropic",
+    "openai"
+  ],
+  "license": "MIT",
+  "homepage": "https://reliant.dev.br",
+  "author": {
+    "name": "Celeiro Softwares",
+    "email": "hello@reliant.dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/celeirosoftwares/n8n-nodes-reliant"
+  },
+  "main": "index.js",
+  "scripts": {},
+  "files": [
+    "dist",
+    "nodes",
+    "credentials",
+    "index.js"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "credentials/ReliantApi.credentials.js"
+    ],
+    "nodes": [
+      "nodes/Reliant/Reliant.node.js"
+    ]
+  }
+}

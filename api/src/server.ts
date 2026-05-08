@@ -8,6 +8,7 @@ import { executeRoutes } from './routes/execute.js'
 import { executionsRoutes } from './routes/executions.js'
 import { metricsRoutes } from './routes/metrics.js'
 import { projectsRoutes } from './routes/projects.js'
+import { analyticsRoutes } from './routes/analytics.js'
 
 const server = Fastify({
   logger: {
@@ -19,13 +20,11 @@ const server = Fastify({
 })
 
 async function start() {
-  // CORS
   await server.register(cors, {
     origin: true,
     credentials: true,
   })
 
-  // Rate limiting
   await server.register(rateLimit, {
     max: parseInt(process.env.RATE_LIMIT_MAX ?? '100'),
     timeWindow: parseInt(process.env.RATE_LIMIT_WINDOW_MS ?? '60000'),
@@ -34,23 +33,21 @@ async function start() {
     },
   })
 
-  // Health check
   server.get('/health', async () => ({
     status: 'ok',
     version: '1.0.0',
     timestamp: new Date().toISOString(),
   }))
 
-  // Routes
   await server.register(projectsRoutes, { prefix: '/projects' })
   await server.register(schemasRoutes, { prefix: '/schemas' })
   await server.register(executeRoutes)
   await server.register(executionsRoutes, { prefix: '/executions' })
   await server.register(metricsRoutes, { prefix: '/metrics' })
+  await server.register(analyticsRoutes)
 
   const port = parseInt(process.env.PORT ?? '3100')
   const host = process.env.HOST ?? '0.0.0.0'
-
   await server.listen({ port, host })
   console.log(`\n  🛡️  Reliant API running on http://${host}:${port}\n`)
 }

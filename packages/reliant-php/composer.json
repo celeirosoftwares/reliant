@@ -1,0 +1,25 @@
+{
+  "name": "reliant/reliant-php",
+  "description": "Official PHP SDK for Reliant — LLM Reliability Layer",
+  "type": "library",
+  "keywords": ["reliant", "llm", "ai", "structured-output", "reliability"],
+  "homepage": "https://reliant.dev.br",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Celeiro Softwares",
+      "email": "hello@reliant.dev"
+    }
+  ],
+  "require": {
+    "php": ">=7.4",
+    "ext-curl": "*",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Reliant\\": "src/"
+    }
+  },
+  "minimum-stability": "stable"
+}

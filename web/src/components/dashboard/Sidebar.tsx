@@ -25,6 +25,7 @@ const navItems = [
     items: [
       { href: '/dashboard', label: 'Visão Geral', icon: '▤' },
       { href: '/dashboard/executions', label: 'Execuções', icon: '≡' },
+      { href: '/dashboard/analytics', label: 'Analytics', icon: '📈' },
     ],
   },
   {

@@ -1,168 +1,182 @@
 import Link from 'next/link'
 import styles from '@/components/dashboard/Docs.module.css'
 
-export default function ExecutePage() {
+export default function ApiExecutePage() {
   return (
     <div className={styles.page}>
-      <div className={styles.badge}>Conceitos</div>
-      <h1 className={styles.title}>Execute & Retry</h1>
+      <div className={styles.badge}>API Reference</div>
+      <h1 className={styles.title}>POST /execute</h1>
       <p className={styles.lead}>
-        O núcleo do Reliant. Cada chamada ao <span className={styles.inline}>execute()</span> passa por um pipeline de validação e retry automático que garante o output correto.
+        Executa um prompt contra um schema com validação automática e retry inteligente.
       </p>
 
       <hr className={styles.divider} />
 
-      <h2 className={styles.h2}>O pipeline de execução</h2>
+      <h2 className={styles.h2}>Endpoint</h2>
       <div className={styles.codeBlock}>
-        <div className={styles.codeHeader}><span className={styles.codeLang}>fluxo</span></div>
+        <div className={styles.codeHeader}><span className={styles.codeLang}>http</span></div>
         <div className={styles.code}>
-{`reliant.execute(prompt, schemaId, provider, model)
-        │
-        ▼
-  Monta system prompt com o schema
-        │
-        ▼
-  Chama o LLM provider
-        │
-        ▼
-  Parseia o output como JSON
-        │
-     válido? ──── sim ──→ retorna output + metadata
-        │
-       não
-        │
-        ▼
-  Tentativa 2: reescreve prompt com erros
-        │
-     válido? ──── sim ──→ retorna output + metadata
-        │
-       não
-        │
-        ▼
-  Tentativa 3: prompt simplificado, temperatura 0
-        │
-     válido? ──── sim ──→ retorna output + metadata
-        │
-       não
-        │
-        ▼
-  Retorna safe_fallback (se configurado)`}
+{`POST https://reliant-production.up.railway.app/execute
+
+Headers:
+  Content-Type: application/json
+  X-Reliant-Key: rel_...`}
         </div>
       </div>
 
-      <hr className={styles.divider} />
-
-      <h2 className={styles.h2}>Retry inteligente</h2>
-      <p className={styles.p}>
-        Quando o LLM retorna um output inválido, o Reliant não apenas tenta de novo — ele reescreve o prompt incluindo os erros de validação exatos, para que o modelo saiba o que corrigir.
-      </p>
-
-      <h3 className={styles.h3}>Tentativa 1 — chamada normal</h3>
+      <h2 className={styles.h2}>Request Body</h2>
       <div className={styles.codeBlock}>
-        <div className={styles.codeHeader}><span className={styles.codeLang}>system prompt (tentativa 1)</span></div>
+        <div className={styles.codeHeader}><span className={styles.codeLang}>json</span></div>
         <div className={styles.code}>
-{`You are a data extraction assistant. You MUST respond with ONLY 
-a valid JSON object that strictly follows this JSON Schema:
-
-{ "type": "object", "required": ["name", "email"], ... }
-
-Rules:
-- Return ONLY the JSON object, no markdown, no explanation
-- Every required field must be present`}
+{`{
+  "prompt": "Extraia os dados: João Silva, joao@email.com",
+  "schema_id": "cmonautso0002ph012m23m4au",
+  "provider": "anthropic",
+  "model": "claude-sonnet-4-20250514",
+  "user_id": "090550db-aab4-4f5a-8178-d1e4f5e3f639",
+  "options": {
+    "max_retries": 3
+  }
+}`}
         </div>
       </div>
 
-      <h3 className={styles.h3}>Tentativa 2 — prompt com erros</h3>
-      <div className={styles.codeBlock}>
-        <div className={styles.codeHeader}><span className={styles.codeLang}>system prompt (tentativa 2)</span></div>
-        <div className={styles.code}>
-{`Your previous response had validation errors:
-- /email: must match format "email"
-- /phone: must be string
-
-You MUST respond with ONLY a valid JSON object that strictly 
-follows this JSON Schema: { ... }
-
-Fix ALL the validation errors listed above.`}
-        </div>
-      </div>
-
-      <hr className={styles.divider} />
-
-      <h2 className={styles.h2}>Parâmetros do execute()</h2>
       <table className={styles.table}>
         <thead>
-          <tr><th>Parâmetro</th><th>Tipo</th><th>Obrigatório</th><th>Descrição</th></tr>
+          <tr><th>Campo</th><th>Tipo</th><th></th><th>Descrição</th></tr>
         </thead>
         <tbody>
           <tr>
             <td><span className={styles.param}>prompt</span></td>
             <td><span className={styles.type}>string</span></td>
             <td><span className={styles.required}>obrigatório</span></td>
-            <td>O prompt do usuário enviado ao LLM</td>
+            <td>Prompt enviado ao LLM</td>
           </tr>
           <tr>
-            <td><span className={styles.param}>schemaId</span></td>
+            <td><span className={styles.param}>schema_id</span></td>
             <td><span className={styles.type}>string</span></td>
             <td><span className={styles.required}>obrigatório</span></td>
-            <td>ID do schema que define o contrato do output</td>
+            <td>ID do schema de validação. Disponível em Dashboard → Schemas</td>
           </tr>
           <tr>
             <td><span className={styles.param}>provider</span></td>
-            <td><span className={styles.type}>'anthropic' | 'openai' | 'gemini'</span></td>
+            <td><span className={styles.type}>string</span></td>
             <td><span className={styles.required}>obrigatório</span></td>
-            <td>Provider do LLM a ser utilizado</td>
+            <td>anthropic | openai | gemini | groq | mistral</td>
           </tr>
           <tr>
             <td><span className={styles.param}>model</span></td>
             <td><span className={styles.type}>string</span></td>
             <td><span className={styles.required}>obrigatório</span></td>
-            <td>Modelo específico do provider</td>
+            <td>Modelo do provider. Ex: claude-sonnet-4-20250514</td>
+          </tr>
+          <tr>
+            <td><span className={styles.param}>user_id</span></td>
+            <td><span className={styles.type}>string</span></td>
+            <td><span className={styles.required}>obrigatório</span></td>
+            <td>Seu User ID do Supabase. Disponível em Dashboard → Configurações</td>
           </tr>
           <tr>
             <td><span className={styles.param}>options.max_retries</span></td>
             <td><span className={styles.type}>number</span></td>
             <td><span className={styles.optional}>opcional</span></td>
-            <td>Número máximo de tentativas (padrão: 3)</td>
-          </tr>
-          <tr>
-            <td><span className={styles.param}>options.temperature</span></td>
-            <td><span className={styles.type}>number</span></td>
-            <td><span className={styles.optional}>opcional</span></td>
-            <td>Temperatura do modelo (padrão: 0.2)</td>
+            <td>Máximo de tentativas. Padrão: 3</td>
           </tr>
         </tbody>
       </table>
 
-      <hr className={styles.divider} />
+      <div className={styles.callout}>
+        <strong>Onde encontrar o user_id?</strong> Acesse <Link href="/dashboard/settings" style={{ color: 'var(--accent)' }}>Dashboard → Configurações</Link> — o User ID aparece com botão de copiar.
+      </div>
 
-      <h2 className={styles.h2}>Objeto de retorno</h2>
+      <h2 className={styles.h2}>Response — 200 OK</h2>
       <div className={styles.codeBlock}>
-        <div className={styles.codeHeader}><span className={styles.codeLang}>typescript</span></div>
+        <div className={styles.codeHeader}><span className={styles.codeLang}>json</span></div>
         <div className={styles.code}>
 {`{
-  success: boolean,        // true se output válido, false se usou fallback
-  output: object,          // o output do LLM validado (ou safe_fallback)
-  metadata: {
-    execution_id: string,  // ID único da execução para rastreamento
-    status: 'success' | 'fallback' | 'failed',
-    attempts: number,      // quantas tentativas foram necessárias
-    latency_ms: number,    // latência total em milissegundos
-    tokens_used: number,   // tokens consumidos em todas as tentativas
-    model_used: string,    // modelo que retornou o resultado final
+  "success": true,
+  "status": "success",
+  "output": {
+    "name": "João Silva",
+    "email": "joao@email.com"
+  },
+  "metadata": {
+    "execution_id": "cmonavlcs0004ph01ska7i1tq",
+    "attempts": 1,
+    "latency_ms": 743,
+    "tokens_used": 218,
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-20250514"
   }
 }`}
         </div>
       </div>
 
+      <h2 className={styles.h2}>Response — 207 (Fallback usado)</h2>
+      <div className={styles.codeBlock}>
+        <div className={styles.codeHeader}><span className={styles.codeLang}>json</span></div>
+        <div className={styles.code}>
+{`{
+  "success": false,
+  "status": "fallback",
+  "output": { "name": null, "email": null },
+  "metadata": {
+    "execution_id": "exec_...",
+    "attempts": 3,
+    "latency_ms": 4821
+  }
+}`}
+        </div>
+      </div>
+
+      <h2 className={styles.h2}>Exemplo completo</h2>
+      <div className={styles.codeBlock}>
+        <div className={styles.codeHeader}><span className={styles.codeLang}>typescript</span></div>
+        <div className={styles.code}>
+{`const response = await fetch('https://reliant-production.up.railway.app/execute', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-Reliant-Key': 'rel_...',
+  },
+  body: JSON.stringify({
+    prompt: 'Extraia os dados: João Silva, joao@email.com',
+    schema_id: 'seu-schema-id',
+    provider: 'anthropic',
+    model: 'claude-sonnet-4-20250514',
+    user_id: 'seu-user-id',  // Dashboard → Configurações
+  }),
+})
+
+const data = await response.json()
+console.log(data.output)`}
+        </div>
+      </div>
+
+      <div className={styles.codeBlock}>
+        <div className={styles.codeHeader}><span className={styles.codeLang}>curl</span></div>
+        <div className={styles.code}>
+{`curl -X POST https://reliant-production.up.railway.app/execute \\
+  -H "Content-Type: application/json" \\
+  -H "X-Reliant-Key: rel_..." \\
+  -d '{
+    "prompt": "Extraia os dados: João Silva, joao@email.com",
+    "schema_id": "seu-schema-id",
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-20250514",
+    "user_id": "seu-user-id"
+  }'`}
+        </div>
+      </div>
+
       <div className={styles.pagination}>
-        <Link href="/docs/schemas" className={styles.pageLink}>
+        <Link href="/docs/sdk-python" className={styles.pageLink}>
           <span className={styles.pageLinkLabel}>← Anterior</span>
-          <span className={styles.pageLinkTitle}>Schemas</span>
+          <span className={styles.pageLinkTitle}>SDK Python</span>
         </Link>
-        <Link href="/docs/observability" className={styles.pageLink} style={{ textAlign: 'right' }}>
+        <Link href="/docs/api/schemas" className={styles.pageLink} style={{ textAlign: 'right' }}>
           <span className={styles.pageLinkLabel}>Próximo →</span>
-          <span className={styles.pageLinkTitle}>Observabilidade</span>
+          <span className={styles.pageLinkTitle}>API — Schemas</span>
         </Link>
       </div>
     </div>
