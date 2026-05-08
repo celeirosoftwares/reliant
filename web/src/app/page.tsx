@@ -1194,7 +1194,7 @@ function copyInstall() {
   <div class="hero-glow"></div>
   <div class="hero-badge">
     <div class="badge-dot"></div>
-    <span data-i18n="hero.badge">Disponível agora — reliant-js v1.0.0</span>
+    <span data-i18n="hero.badge">Disponível agora — JS, Python e PHP SDKs + n8n</span>
   </div>
   <h1 class="hero-title">
     <span data-i18n="hero.title1">Seu pipeline de IA,</span><br>
@@ -1355,6 +1355,31 @@ console.<span class="c-fn">log</span>(result.<span class="c-key">output</span>)<
       <div class="feature-icon">📋</div>
       <div class="feature-title" data-i18n="f6.title">Schema Registry</div>
       <div class="feature-desc" data-i18n="f6.desc">Versione seus contratos de output. Acompanhe mudanças. Nunca quebre compatibilidade retroativa por acidente.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">✍️</div>
+      <div class="feature-title" data-i18n="f7.title">System Prompt Customizado</div>
+      <div class="feature-desc" data-i18n="f7.desc">Configure o prompt do sistema por schema. Instrua o LLM com contexto específico do seu negócio — sem alterar o código.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⛓️</div>
+      <div class="feature-title" data-i18n="f8.title">Fallback Multi-Provider</div>
+      <div class="feature-desc" data-i18n="f8.desc">Se a Anthropic falhar, tente a OpenAI. Configure uma cadeia de fallback entre providers — seu pipeline nunca para.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📈</div>
+      <div class="feature-title" data-i18n="f9.title">Analytics Avançado</div>
+      <div class="feature-desc" data-i18n="f9.desc">Taxa de sucesso por schema e provider, custo estimado por execução e tendência diária dos últimos 30 dias.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔗</div>
+      <div class="feature-title" data-i18n="f10.title">Integração com n8n</div>
+      <div class="feature-desc" data-i18n="f10.desc">Node nativo no n8n. Instale com um clique e use o Reliant em qualquer automação sem escrever código.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🧰</div>
+      <div class="feature-title" data-i18n="f11.title">SDKs para JS, Python e PHP</div>
+      <div class="feature-desc" data-i18n="f11.desc">SDKs oficiais para as linguagens mais usadas. Integre em minutos com suporte completo a TypeScript.</div>
     </div>
   </div>
 </section>
