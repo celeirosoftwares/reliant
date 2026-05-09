@@ -89,9 +89,11 @@ function parseJsonOutput(content: string): unknown | null {
 
 export async function executeWithReliability(opts: ExecuteOptions): Promise<ExecuteResult> {
   const startTime = Date.now()
+  console.log('executeWithReliability called:', { schemaId: opts.schemaId, provider: opts.provider, userId: opts.userId, projectId: opts.projectId })
   const maxRetries = opts.maxRetries ?? MAX_RETRIES
 
   const providerKey = await getUserProviderKey(opts.userId, opts.provider)
+  console.log('providerKey found:', !!providerKey)
   if (!providerKey) {
     throw new Error(`No API key configured for provider "${opts.provider}". Please add your key in Providers settings.`)
   }
@@ -100,6 +102,7 @@ export async function executeWithReliability(opts: ExecuteOptions): Promise<Exec
     where: { id: opts.schemaId, projectId: opts.projectId },
     orderBy: { version: 'desc' },
   })
+  console.log('schema found:', !!schema, schema?.id)
 
   if (!schema) {
     throw new Error(`Schema ${opts.schemaId} not found`)
