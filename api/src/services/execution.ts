@@ -52,17 +52,19 @@ async function getUserProviderKey(userId: string, provider: string): Promise<str
   return data[0].encrypted_key
 }
 
-function validateOutput(output: unknown, schema: unknown): ValidationResult {
+async function validateOutput(output: unknown, schema: unknown): Promise<ValidationResult> {
   try {
-    const Ajv = require('ajv')
+    const { default: Ajv } = await import('ajv')
+    const { default: addFormats } = await import('ajv-formats')
     const ajv = new Ajv({ allErrors: true })
-    const validate = ajv.compile(schema)
+    addFormats(ajv)
+    const validate = ajv.compile(schema as object)
     const valid = validate(output)
     if (valid) return { valid: true, errors: [] }
     const errors = (validate.errors || []).map((e: any) => `${e.instancePath} ${e.message}`.trim())
     return { valid: false, errors }
-  } catch {
-    return { valid: false, errors: ['Schema validation failed'] }
+  } catch (err: any) {
+    return { valid: false, errors: [`Schema validation failed: ${err.message}`] }
   }
 }
 
@@ -142,7 +144,7 @@ export async function executeWithReliability(opts: ExecuteOptions): Promise<Exec
         continue
       }
 
-      const validation = validateOutput(parsed, schemaDefinition)
+      const validation = await validateOutput(parsed, schemaDefinition)
 
       if (validation.valid) {
         finalOutput = parsed
