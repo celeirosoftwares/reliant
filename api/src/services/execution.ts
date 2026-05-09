@@ -99,10 +99,10 @@ export async function executeWithReliability(opts: ExecuteOptions): Promise<Exec
   }
 
   const schema = await prisma.schema.findFirst({
+  console.log('schema found:', !!schema, schema?.id)
     where: { id: opts.schemaId, projectId: opts.projectId },
     orderBy: { version: 'desc' },
   })
-  console.log('schema found:', !!schema, schema?.id)
 
   if (!schema) {
     throw new Error(`Schema ${opts.schemaId} not found`)
@@ -168,27 +168,35 @@ export async function executeWithReliability(opts: ExecuteOptions): Promise<Exec
 
   const latencyMs = Date.now() - startTime
 
-  const execution = await prisma.execution.create({
-    data: {
-      projectId: opts.projectId,
-      schemaId: opts.schemaId,
-      schemaVersion: schema.version,
-      provider: opts.provider,
-      model: opts.model,
-      status,
-      attempts,
-      latencyMs,
-      tokensUsed: totalTokens,
-      inputPrompt: opts.prompt,
-      output: finalOutput as any ?? undefined,
-      validationErrors: lastValidationErrors.length > 0 ? lastValidationErrors : undefined,
-    },
-  })
+  let executionId = 'unknown'
+  try {
+    const execution = await prisma.execution.create({
+      data: {
+        projectId: opts.projectId,
+        schemaId: opts.schemaId,
+        schemaVersion: schema.version,
+        provider: opts.provider,
+        model: opts.model,
+        status,
+        attempts,
+        latencyMs,
+        tokensUsed: totalTokens,
+        inputPrompt: opts.prompt,
+        output: finalOutput as any ?? undefined,
+        validationErrors: lastValidationErrors.length > 0 ? lastValidationErrors : undefined,
+      },
+    })
+    executionId = execution.id
+    console.log('execution created:', executionId)
+  } catch (err: any) {
+    console.error('Failed to create execution record:', err.message)
+    // Don't throw — still return the output even if logging fails
+  }
 
   return {
     success: status === 'SUCCESS',
     output: finalOutput,
-    executionId: execution.id,
+    executionId,
     attempts,
     latencyMs,
     tokensUsed: totalTokens,
