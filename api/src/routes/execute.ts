@@ -1,8 +1,11 @@
+import { authMiddleware } from '../middleware/auth.js'
 import { FastifyInstance } from 'fastify'
 import { executeWithReliability } from '../services/execution.js'
 import { checkUsageLimit } from '../middleware/usage.js'
 
 export async function executeRoutes(app: FastifyInstance) {
+  app.addHook('onRequest', authMiddleware)
+
   app.post('/execute', async (req, reply) => {
     const project = (req as any).project
     const body = req.body as any
@@ -55,10 +58,10 @@ export async function executeRoutes(app: FastifyInstance) {
     } catch (err: any) {
       req.log.error(err)
       return reply.status(500).send({
-  error: 'Execution Failed',
-  message: err.message,
-  stack: err.stack,
-})
+        error: 'Execution Failed',
+        message: err.message,
+        stack: err.stack,
+      })
     }
   })
 }
