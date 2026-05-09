@@ -99,10 +99,10 @@ export async function executeWithReliability(opts: ExecuteOptions): Promise<Exec
   }
 
   const schema = await prisma.schema.findFirst({
-  console.log('schema found:', !!schema, schema?.id)
     where: { id: opts.schemaId, projectId: opts.projectId },
     orderBy: { version: 'desc' },
   })
+  console.log('schema found:', !!schema, schema?.id)
 
   if (!schema) {
     throw new Error(`Schema ${opts.schemaId} not found`)
