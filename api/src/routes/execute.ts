@@ -55,9 +55,10 @@ export async function executeRoutes(app: FastifyInstance) {
     } catch (err: any) {
       req.log.error(err)
       return reply.status(500).send({
-        error: 'Execution Failed',
-        message: err.message,
-      })
+  error: 'Execution Failed',
+  message: err.message,
+  stack: err.stack,
+})
     }
   })
 }
