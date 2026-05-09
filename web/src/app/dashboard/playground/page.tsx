@@ -164,10 +164,22 @@ export default function PlaygroundPage() {
   const selectedProvider = PROVIDERS.find(p => p.id === provider)
 
   async function runExecution() {
-    if (!prompt.trim() || !selectedSchemaId) {
-      setError('Preencha o prompt e selecione um schema.')
-      return
-    }
+    if (!prompt.trim()) {
+  setError('Preencha o prompt.')
+  return
+}
+if (!selectedSchemaId) {
+  setError('Selecione um schema. Se não tiver nenhum, importe um template na aba Templates.')
+  return
+}
+if (!userId) {
+  setError('Sessão expirada. Recarregue a página.')
+  return
+}
+if (!apiKey) {
+  setError('API key não encontrada. Verifique suas Configurações.')
+  return
+}
     setRunning(true)
     setResult(null)
     setError('')
