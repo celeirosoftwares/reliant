@@ -1,22 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import styles from './Sidebar.module.css'
 
 interface Props {
-  user: { email?: string; id?: string }
-  profile: { full_name?: string; plan?: string; reliant_api_key?: string } | null
+  profile: { plan?: string } | null
 }
 
 const PLAN_LIMITS: Record<string, number> = {
-  free: 1000,
-  starter: 50000,
-  pro: 250000,
-  scale: 1000000,
-  enterprise: -1,
+  free: 1000, starter: 50000, pro: 250000, scale: 1000000, enterprise: -1,
 }
 
 const navItems = [
@@ -33,7 +28,7 @@ const navItems = [
     section: 'Configurar',
     items: [
       { href: '/dashboard/schemas', label: 'Schemas', icon: '❑' },
-      { href: '/dashboard/providers', label: 'Providers de IA', icon: '⚡' },
+      { href: '/dashboard/providers', label: 'Providers de IA', icon: '🔌' },
       { href: '/dashboard/settings', label: 'Configurações', icon: '⚙' },
     ],
   },
@@ -46,9 +41,8 @@ const navItems = [
   },
 ]
 
-export default function Sidebar({ user, profile }: Props) {
+export default function Sidebar({ profile }: Props) {
   const pathname = usePathname()
-  const router = useRouter()
   const supabase = createClient()
   const [usageCount, setUsageCount] = useState<number | null>(null)
 
@@ -67,11 +61,6 @@ export default function Sidebar({ user, profile }: Props) {
     }
     loadUsage()
   }, [])
-
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    window.location.href = '/auth/login'
-  }
 
   const plan = profile?.plan || 'free'
   const limit = PLAN_LIMITS[plan] || 1000
@@ -105,53 +94,25 @@ export default function Sidebar({ user, profile }: Props) {
         ))}
       </nav>
 
-      <div className={styles.bottom}>
-        {/* Usage bar */}
-        {usageCount !== null && limit > 0 && (
-          <div style={{ marginBottom: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-ui-mono)', fontSize: '10px', color: '#555', marginBottom: '5px' }}>
-              <span>Uso mensal</span>
-              <span style={{ color: usagePercent >= 90 ? '#ff4444' : '#555' }}>
-                {usageCount.toLocaleString()} / {limit.toLocaleString()}
-              </span>
-            </div>
-            <div style={{ background: '#1a1a1a', borderRadius: '100px', height: '4px', overflow: 'hidden' }}>
-              <div style={{
-                height: '100%', borderRadius: '100px',
-                width: `${usagePercent}%`,
-                background: usagePercent >= 90 ? '#ff4444' : usagePercent >= 70 ? '#ffbb00' : 'var(--accent)',
-                transition: 'width 0.3s',
-              }} />
-            </div>
-            {usagePercent >= 80 && (
-              <Link href="/dashboard/upgrade" style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '10px', color: '#ffbb00', textDecoration: 'none', display: 'block', marginTop: '4px' }}>
-                ⚠️ Fazer upgrade →
-              </Link>
-            )}
+      {/* Usage bar at bottom of sidebar */}
+      {usageCount !== null && limit > 0 && (
+        <div style={{ padding: '16px', borderTop: '1px solid #1a1a1a' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-ui-mono)', fontSize: '10px', color: '#555', marginBottom: '5px' }}>
+            <span>Uso mensal</span>
+            <span style={{ color: usagePercent >= 90 ? '#ff4444' : '#555' }}>
+              {usageCount.toLocaleString()} / {limit.toLocaleString()}
+            </span>
           </div>
-        )}
-
-        <div className={styles.userCard}>
-          <div className={styles.userName}>
-            {profile?.full_name || user.email?.split('@')[0]}
+          <div style={{ background: '#1a1a1a', borderRadius: '100px', height: '4px', overflow: 'hidden' }}>
+            <div style={{ height: '100%', borderRadius: '100px', width: `${usagePercent}%`, background: usagePercent >= 90 ? '#ff4444' : usagePercent >= 70 ? '#ffbb00' : 'var(--accent)', transition: 'width 0.3s' }} />
           </div>
-          <div className={styles.userEmail}>{user.email}</div>
-          <div className={styles.planBadge}>{plan}</div>
+          {usagePercent >= 80 && (
+            <Link href="/dashboard/upgrade" style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '10px', color: '#ffbb00', textDecoration: 'none', display: 'block', marginTop: '4px' }}>
+              ⚠️ Fazer upgrade →
+            </Link>
+          )}
         </div>
-
-        {profile?.reliant_api_key && (
-          <div className={styles.apiKeyCard}>
-            <div className={styles.apiKeyLabel}>API Key</div>
-            <div className={styles.apiKeyValue}>
-              {profile.reliant_api_key.substring(0, 16)}...
-            </div>
-          </div>
-        )}
-
-        <button className={styles.logoutBtn} onClick={handleLogout}>
-          Sair
-        </button>
-      </div>
+      )}
     </aside>
   )
 }
