@@ -152,10 +152,12 @@ export default function PlaygroundPage() {
         setApiKey(profile.reliant_api_key)
         const url = profile.reliant_api_url || 'https://reliant-production.up.railway.app'
         setApiUrl(url)
-        const res = await fetch(`${url}/schemas`, { headers: { 'X-Reliant-Key': profile.reliant_api_key } })
-        const data = await res.json()
-        setSchemas(data.schemas || [])
-        if (data.schemas?.length > 0) setSelectedSchemaId(data.schemas[0].id)
+        try {
+          const res = await fetch(`${url}/schemas`, { headers: { 'X-Reliant-Key': profile.reliant_api_key } })
+          const data = await res.json()
+          setSchemas(data.schemas || [])
+          if (data.schemas?.length > 0) setSelectedSchemaId(data.schemas[0].id)
+        } catch {}
       }
     }
     init()
@@ -164,22 +166,10 @@ export default function PlaygroundPage() {
   const selectedProvider = PROVIDERS.find(p => p.id === provider)
 
   async function runExecution() {
-    if (!prompt.trim()) {
-  setError('Preencha o prompt.')
-  return
-}
-if (!selectedSchemaId) {
-  setError('Selecione um schema. Se não tiver nenhum, importe um template na aba Templates.')
-  return
-}
-if (!userId) {
-  setError('Sessão expirada. Recarregue a página.')
-  return
-}
-if (!apiKey) {
-  setError('API key não encontrada. Verifique suas Configurações.')
-  return
-}
+    if (!prompt.trim() || !selectedSchemaId) {
+      setError('Preencha o prompt e selecione um schema.')
+      return
+    }
     setRunning(true)
     setResult(null)
     setError('')

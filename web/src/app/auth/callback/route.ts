@@ -34,7 +34,8 @@ export async function GET(request: NextRequest) {
   if (!profile?.reliant_api_key) {
     try {
       // Create project in Reliant API
-      const res = await fetch(`${process.env.NEXT_PUBLIC_RELIANT_API_URL}/projects`, {
+      const apiUrl = process.env.NEXT_PUBLIC_RELIANT_API_URL || process.env.RELIANT_API_URL || 'https://reliant-production.up.railway.app'
+      const res = await fetch(`${apiUrl}/projects`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: user.email }),
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
             .update({
               reliant_api_key: project.api_key,
               reliant_project_id: project.id,
-              reliant_api_url: process.env.NEXT_PUBLIC_RELIANT_API_URL,
+              reliant_api_url: apiUrl,
             })
             .eq('id', user.id)
 

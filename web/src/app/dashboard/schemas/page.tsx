@@ -45,6 +45,8 @@ export default function SchemasPage() {
         setApiKey(profile.reliant_api_key)
         setApiUrl(profile.reliant_api_url || 'https://reliant-production.up.railway.app')
         await loadSchemas(profile.reliant_api_key, profile.reliant_api_url)
+      } else {
+        setLoading(false)
       }
     }
     init()
