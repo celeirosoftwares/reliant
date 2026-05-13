@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
 
-// Anon client for code exchange (required by Supabase)
-const supabaseAnon = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-
-// Admin client for DB operations
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -21,17 +15,38 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/auth/login?error=no_code`)
   }
 
-  // Exchange code using ANON client
-  const { data, error } = await supabaseAnon.auth.exchangeCodeForSession(code)
+  const response = NextResponse.redirect(`${origin}/dashboard`)
+
+  // Use SSR client that reads cookies (needed for PKCE code_verifier)
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options)
+          })
+        },
+      },
+    }
+  )
+
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
   if (error || !data.user) {
-    console.error('Callback error:', error?.message, error?.status)
-    return NextResponse.redirect(`${origin}/auth/login?error=callback_failed&msg=${encodeURIComponent(error?.message || 'unknown')}`)
+    console.error('Callback error:', error?.message)
+    return NextResponse.redirect(
+      `${origin}/auth/login?error=callback_failed&msg=${encodeURIComponent(error?.message || 'unknown')}`
+    )
   }
 
   const user = data.user
 
-  // Check if user already has a Reliant project
+  // Create Reliant project if not exists
   const { data: profile } = await supabaseAdmin
     .from('profiles')
     .select('reliant_api_key')
@@ -60,31 +75,10 @@ export async function GET(request: NextRequest) {
             .eq('id', user.id)
           console.log(`✅ Created Reliant project for ${user.email}: ${project.id}`)
         }
-      } else {
-        console.error('Failed to create Reliant project:', await res.text())
       }
     } catch (err) {
       console.error('Error creating Reliant project:', err)
     }
-  }
-
-  const response = NextResponse.redirect(`${origin}/dashboard`)
-
-  if (data.session) {
-    response.cookies.set('sb-access-token', data.session.access_token, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: data.session.expires_in,
-      path: '/',
-    })
-    response.cookies.set('sb-refresh-token', data.session.refresh_token, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30,
-      path: '/',
-    })
   }
 
   return response
