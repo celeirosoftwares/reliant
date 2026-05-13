@@ -7,7 +7,10 @@ import styles from '@/components/dashboard/Dashboard.module.css'
 export default function SettingsPage() {
   const [profile, setProfile] = useState<any>(null)
   const [userId, setUserId] = useState('')
+  const [userEmail, setUserEmail] = useState('')
   const [copied, setCopied] = useState<string | null>(null)
+  const [generating, setGenerating] = useState(false)
+  const [genError, setGenError] = useState('')
 
   useEffect(() => {
     const supabase = createClient()
@@ -15,6 +18,7 @@ export default function SettingsPage() {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) return
       setUserId(session.user.id)
+      setUserEmail(session.user.email || '')
       const { data } = await supabase
         .from('profiles')
         .select('*')
@@ -31,8 +35,53 @@ export default function SettingsPage() {
     setTimeout(() => setCopied(null), 2000)
   }
 
-  const baseUrl = profile?.reliant_api_url || 'https://reliant-production.up.railway.app'
+  async function generateApiKey() {
+    setGenerating(true)
+    setGenError('')
+    try {
+      const apiUrl = 'https://reliant-production.up.railway.app'
+      const res = await fetch(`${apiUrl}/projects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: userEmail }),
+      })
 
+      if (!res.ok) {
+        setGenError('Erro ao criar projeto. Tente novamente.')
+        setGenerating(false)
+        return
+      }
+
+      const project = await res.json()
+      if (!project.api_key) {
+        setGenError('Erro: API key não retornada.')
+        setGenerating(false)
+        return
+      }
+
+      const supabase = createClient()
+      await supabase
+        .from('profiles')
+        .update({
+          reliant_api_key: project.api_key,
+          reliant_project_id: project.id,
+          reliant_api_url: apiUrl,
+        })
+        .eq('id', userId)
+
+      setProfile((prev: any) => ({
+        ...prev,
+        reliant_api_key: project.api_key,
+        reliant_project_id: project.id,
+        reliant_api_url: apiUrl,
+      }))
+    } catch {
+      setGenError('Erro de conexão. Tente novamente.')
+    }
+    setGenerating(false)
+  }
+
+  const baseUrl = profile?.reliant_api_url || 'https://reliant-production.up.railway.app'
   const fieldStyle: React.CSSProperties = { width: '100%', background: '#1a1a1a', border: '1px solid #222', borderRadius: '4px', padding: '9px 12px', color: '#888', fontFamily: 'var(--font-ui-mono)', fontSize: '12px', outline: 'none' }
   const labelStyle: React.CSSProperties = { fontFamily: 'var(--font-ui-mono)', fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: '6px' }
 
@@ -67,7 +116,6 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Plan */}
         <div style={{ background: '#111', border: '1px solid #222', borderRadius: '4px', padding: '24px', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '24px' }}>
           <div>
             <label style={labelStyle}>Plano</label>
@@ -76,11 +124,33 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <CopyField label="Reliant API Key" value={profile?.reliant_api_key || ''} fieldKey="apikey" secret />
+          {profile?.reliant_api_key ? (
+            <CopyField label="Reliant API Key" value={profile.reliant_api_key} fieldKey="apikey" secret />
+          ) : (
+            <div>
+              <label style={labelStyle}>Reliant API Key</label>
+              <div style={{ background: '#1a1a1a', border: '1px solid #222', borderRadius: '4px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '12px', color: '#555' }}>
+                  Você ainda não tem uma API Key. Clique abaixo para gerar.
+                </div>
+                {genError && (
+                  <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '11px', color: '#ff4455' }}>{genError}</div>
+                )}
+                <button
+                  onClick={generateApiKey}
+                  disabled={generating}
+                  className={styles.btnPrimary}
+                  style={{ alignSelf: 'flex-start' }}
+                >
+                  {generating ? 'Gerando...' : '⚡ Gerar API Key'}
+                </button>
+              </div>
+            </div>
+          )}
+
           <CopyField label="User ID" value={userId} fieldKey="userid" />
         </div>
 
-        {/* Endpoints */}
         <div className={styles.sectionHeader} style={{ marginTop: '8px' }}>
           <div>
             <div className={styles.sectionTitle} style={{ fontSize: '16px' }}>Endpoints</div>
@@ -89,7 +159,6 @@ export default function SettingsPage() {
         </div>
 
         <div style={{ background: '#111', border: '1px solid #222', borderRadius: '4px', padding: '24px', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
           <CopyField label="Execute — POST" value={`${baseUrl}/execute`} fieldKey="execute" />
           <CopyField label="Schemas — GET / POST" value={`${baseUrl}/schemas`} fieldKey="schemas" />
           <CopyField label="Executions — GET" value={`${baseUrl}/executions`} fieldKey="executions" />
