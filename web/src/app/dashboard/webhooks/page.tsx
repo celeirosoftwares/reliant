@@ -149,6 +149,7 @@ export default function WebhooksPage() {
       const res = await fetch(`${url}/webhooks/${id}/test`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Reliant-Key': key },
+        body: '{}',
       })
       const data = await res.json()
       setTestResult(data)
