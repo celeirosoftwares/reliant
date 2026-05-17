@@ -128,14 +128,17 @@ export async function webhookRoutes(app: FastifyInstance) {
         test: true,
       }
 
+      const testHeaders: Record<string, string> = {
+        'Content-Type': 'application/json',
+      }
+      if (webhook.secret) {
+        testHeaders['X-Reliant-Event'] = 'execution.failed'
+        testHeaders['X-Reliant-Test'] = 'true'
+      }
+
       const res = await fetch(webhook.url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'Reliant-Webhook/1.0',
-          'X-Reliant-Event': 'execution.failed',
-          'X-Reliant-Test': 'true',
-        },
+        headers: testHeaders,
         body: JSON.stringify(testPayload),
         signal: AbortSignal.timeout(10000),
       })
