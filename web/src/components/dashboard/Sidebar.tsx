@@ -20,24 +20,24 @@ const navItems = [
     items: [
       { href: '/dashboard', label: 'Visão Geral', icon: '▤' },
       { href: '/dashboard/executions', label: 'Execuções', icon: '≡' },
-      { href: '/dashboard/analytics', label: 'Analytics', icon: '📈' },
-      { href: '/dashboard/playground', label: 'Playground', icon: '⚡' },
+      { href: '/dashboard/analytics', label: 'Analytics', icon: '◈' },
+      { href: '/dashboard/playground', label: 'Playground', icon: '▷' },
     ],
   },
   {
     section: 'Configurar',
     items: [
       { href: '/dashboard/schemas', label: 'Schemas', icon: '❑' },
-      { href: '/dashboard/providers', label: 'Providers de IA', icon: '🔌' },
-      { href: '/dashboard/settings', label: 'Configurações', icon: '⚙' },
-      { href: '/dashboard/webhooks', label: 'Webhooks', icon: '🔔' },	
+      { href: '/dashboard/providers', label: 'Providers de IA', icon: '◎' },
+      { href: '/dashboard/settings', label: 'Configurações', icon: '◌' },
+      { href: '/dashboard/webhooks', label: 'Webhooks', icon: '◈' },
     ],
   },
   {
     section: 'Conta',
     items: [
-      { href: '/dashboard/upgrade', label: 'Planos & Uso', icon: '📊' },
-      { href: '/docs', label: 'Documentação', icon: '📖' },
+      { href: '/dashboard/upgrade', label: 'Planos & Uso', icon: '▦' },
+      { href: '/docs', label: 'Documentação', icon: '▤' },
     ],
   },
 ]
