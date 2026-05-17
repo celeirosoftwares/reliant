@@ -39,11 +39,23 @@ export default function SettingsPage() {
     setGenerating(true)
     setGenError('')
     try {
+      // Always get fresh session to ensure correct user
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        setGenError('Sessão expirada. Faça login novamente.')
+        setGenerating(false)
+        return
+      }
+
+      const currentUserId = session.user.id
+      const currentEmail = session.user.email || ''
       const apiUrl = 'https://reliant-production.up.railway.app'
+
       const res = await fetch(`${apiUrl}/projects`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: userEmail }),
+        body: JSON.stringify({ name: currentEmail }),
       })
 
       if (!res.ok) {
@@ -59,16 +71,23 @@ export default function SettingsPage() {
         return
       }
 
-      const supabase = createClient()
-      await supabase
+      const { error: updateError } = await supabase
         .from('profiles')
         .update({
           reliant_api_key: project.api_key,
           reliant_project_id: project.id,
           reliant_api_url: apiUrl,
         })
-        .eq('id', userId)
+        .eq('id', currentUserId)
 
+      if (updateError) {
+        setGenError('Erro ao salvar API key: ' + updateError.message)
+        setGenerating(false)
+        return
+      }
+
+      setUserId(currentUserId)
+      setUserEmail(currentEmail)
       setProfile((prev: any) => ({
         ...prev,
         reliant_api_key: project.api_key,
