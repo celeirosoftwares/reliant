@@ -52,13 +52,13 @@ async function dispatchWebhook(webhook: WebhookRow, payload: WebhookPayload): Pr
   const body = JSON.stringify(payload)
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'User-Agent': 'Reliant-Webhook/1.0',
-    'X-Reliant-Event': payload.event,
-    'X-Reliant-Delivery': crypto.randomUUID(),
   }
 
+  // Only add extra headers if secret is configured (opt-in)
   if (webhook.secret) {
     headers['X-Reliant-Signature'] = buildSignature(body, webhook.secret)
+    headers['X-Reliant-Event'] = payload.event
+    headers['X-Reliant-Delivery'] = crypto.randomUUID()
   }
 
   try {
