@@ -129,10 +129,23 @@ export default function WebhooksPage() {
     await loadWebhooks(apiKey, apiUrl, userId)
   }
 
-  async function testWebhook(id: string, key: string, url: string) {
+  async function testWebhook(id: string) {
     setTesting(id)
     setTestResult(null)
     try {
+      // Always fetch fresh API key from Supabase
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { setTestResult({ success: false, error: 'Sessão expirada' }); setTesting(null); return }
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('reliant_api_key, reliant_api_url')
+        .eq('id', session.user.id)
+        .single()
+      const key = profile?.reliant_api_key
+      const url = profile?.reliant_api_url || 'https://reliant-production.up.railway.app'
+      if (!key) { setTestResult({ success: false, error: 'API key não encontrada. Configure em Configurações.' }); setTesting(null); return }
+
       const res = await fetch(`${url}/webhooks/${id}/test`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Reliant-Key': key },
@@ -208,7 +221,7 @@ export default function WebhooksPage() {
                 </div>
                 <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                   <button
-                    onClick={() => testWebhook(w.id, apiKey, apiUrl)}
+                    onClick={() => testWebhook(w.id)}
                     disabled={testing === w.id}
                     style={{ padding: '6px 12px', background: 'transparent', border: '1px solid #222', borderRadius: '4px', fontFamily: 'var(--font-ui-mono)', fontSize: '11px', color: '#555', cursor: 'pointer' }}
                   >
