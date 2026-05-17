@@ -31,6 +31,7 @@ export default function SchemasPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [configuredProviders, setConfiguredProviders] = useState<string[]>([])
 
   useEffect(() => {
     const supabase = createClient()
@@ -46,6 +47,16 @@ export default function SchemasPage() {
         setApiKey(profile.reliant_api_key)
         setApiUrl(profile.reliant_api_url || 'https://reliant-production.up.railway.app')
         await loadSchemas(profile.reliant_api_key, profile.reliant_api_url)
+        const { data: providerKeys } = await supabase
+          .from('provider_keys')
+          .select('provider')
+          .eq('user_id', session.user.id)
+          .eq('is_active', true)
+        if (providerKeys) {
+          setConfiguredProviders(providerKeys.map((k: any) => k.provider))
+        }
+      } else {
+        setLoading(false)
       }
     }
     init()
@@ -245,33 +256,39 @@ export default function SchemasPage() {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                   <label style={{ ...labelStyle, marginBottom: 0 }}>Fallback Providers (opcional)</label>
                 </div>
-                <div style={{ background: '#1a1a1a', border: '1px solid #222', borderRadius: '4px', padding: '12px', display: 'flex', flexWrap: 'wrap' as const, gap: '8px' }}>
-                  {['anthropic', 'openai', 'gemini', 'groq', 'mistral'].map(p => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => setForm(f => ({
-                        ...f,
-                        fallback_providers: f.fallback_providers.includes(p)
-                          ? f.fallback_providers.filter(x => x !== p)
-                          : [...f.fallback_providers, p]
-                      }))}
-                      style={{
-                        padding: '5px 12px',
-                        background: form.fallback_providers.includes(p) ? 'rgba(0,255,136,0.1)' : 'transparent',
-                        border: `1px solid ${form.fallback_providers.includes(p) ? 'rgba(0,255,136,0.3)' : '#333'}`,
-                        borderRadius: '4px',
-                        fontFamily: 'var(--font-ui-mono)',
-                        fontSize: '11px',
-                        color: form.fallback_providers.includes(p) ? 'var(--accent)' : '#555',
-                        cursor: 'pointer',
-                        textTransform: 'capitalize' as const,
-                      }}
-                    >
-                      {form.fallback_providers.includes(p) ? '✓ ' : ''}{p}
-                    </button>
-                  ))}
-                </div>
+                {configuredProviders.length <= 1 ? (
+                  <div style={{ background: '#1a1a1a', border: '1px solid #222', borderRadius: '4px', padding: '12px', fontFamily: 'var(--font-ui-mono)', fontSize: '12px', color: '#555' }}>
+                    Configure mais providers em <a href="/dashboard/providers" style={{ color: 'var(--accent)' }}>Providers de IA</a> para habilitar fallback.
+                  </div>
+                ) : (
+                  <div style={{ background: '#1a1a1a', border: '1px solid #222', borderRadius: '4px', padding: '12px', display: 'flex', flexWrap: 'wrap' as const, gap: '8px' }}>
+                    {configuredProviders.map(p => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setForm(f => ({
+                          ...f,
+                          fallback_providers: f.fallback_providers.includes(p)
+                            ? f.fallback_providers.filter(x => x !== p)
+                            : [...f.fallback_providers, p]
+                        }))}
+                        style={{
+                          padding: '5px 12px',
+                          background: form.fallback_providers.includes(p) ? 'rgba(0,255,136,0.1)' : 'transparent',
+                          border: `1px solid ${form.fallback_providers.includes(p) ? 'rgba(0,255,136,0.3)' : '#333'}`,
+                          borderRadius: '4px',
+                          fontFamily: 'var(--font-ui-mono)',
+                          fontSize: '11px',
+                          color: form.fallback_providers.includes(p) ? 'var(--accent)' : '#555',
+                          cursor: 'pointer',
+                          textTransform: 'capitalize' as const,
+                        }}
+                      >
+                        {form.fallback_providers.includes(p) ? '✓ ' : ''}{p}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '10px', color: '#444', marginTop: '4px' }}>
                   Se o provider principal falhar, o Reliant tentará esses providers em ordem.
                 </div>
