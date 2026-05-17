@@ -22,6 +22,8 @@ export interface ExecuteResult {
   latencyMs: number
   tokensUsed: number
   status: 'SUCCESS' | 'FALLBACK' | 'FAILED'
+  providerUsed: string
+  modelUsed: string
 }
 
 interface ProviderKeyRow {
@@ -31,6 +33,15 @@ interface ProviderKeyRow {
 interface ValidationResult {
   valid: boolean
   errors: string[]
+}
+
+// Default models for fallback providers
+const DEFAULT_MODELS: Record<string, string> = {
+  anthropic: 'claude-sonnet-4-20250514',
+  openai: 'gpt-4o-mini',
+  gemini: 'gemini-1.5-flash',
+  groq: 'llama-3.3-70b-versatile',
+  mistral: 'mistral-small-latest',
 }
 
 async function getUserProviderKey(userId: string, provider: string): Promise<string | null> {
@@ -115,15 +126,69 @@ Rules:
 - Every required field must be present`
 }
 
+async function tryProvider(
+  provider: Provider,
+  model: string,
+  userId: string,
+  prompt: string,
+  schemaDefinition: object,
+  systemPromptOverride: string | null,
+  maxRetries: number
+): Promise<{ output: unknown; tokensUsed: number; attempts: number; errors: string[] } | null> {
+  const providerKey = await getUserProviderKey(userId, provider)
+  if (!providerKey) {
+    console.log(`No key for provider ${provider}, skipping`)
+    return null
+  }
+
+  const baseSystemPrompt = systemPromptOverride || buildSystemPrompt(schemaDefinition)
+  let lastErrors: string[] = []
+  let totalTokens = 0
+  let attempts = 0
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    attempts = attempt
+    try {
+      const systemPrompt = attempt === 1
+        ? baseSystemPrompt
+        : buildRetrySystemPrompt(schemaDefinition, lastErrors, attempt, maxRetries)
+
+      const temperature = attempt === 1 ? 0.2 : attempt === 2 ? 0.1 : 0.0
+
+      const llmResponse = await callLLM({
+        provider,
+        model,
+        systemPrompt,
+        userPrompt: prompt,
+        temperature,
+        apiKey: providerKey,
+      })
+
+      totalTokens += llmResponse.tokensUsed
+
+      const parsed = parseJsonOutput(llmResponse.content)
+      if (!parsed) {
+        lastErrors = ['Output is not valid JSON']
+        continue
+      }
+
+      const validation = await validateOutput(parsed, schemaDefinition)
+      if (validation.valid) {
+        return { output: parsed, tokensUsed: totalTokens, attempts, errors: [] }
+      }
+      lastErrors = validation.errors
+    } catch (err: any) {
+      lastErrors = [`LLM call failed: ${err.message}`]
+      console.error(`Provider ${provider} attempt ${attempt} failed:`, err.message)
+    }
+  }
+
+  return { output: null, tokensUsed: totalTokens, attempts, errors: lastErrors }
+}
+
 export async function executeWithReliability(opts: ExecuteOptions): Promise<ExecuteResult> {
   const startTime = Date.now()
   const maxRetries = opts.maxRetries ?? 3
-
-  // Get provider key
-  const providerKey = await getUserProviderKey(opts.userId, opts.provider)
-  if (!providerKey) {
-    throw new Error(`No API key configured for provider "${opts.provider}". Add your key in Providers settings.`)
-  }
 
   // Get schema
   const schema = await prisma.schema.findFirst({
@@ -137,54 +202,52 @@ export async function executeWithReliability(opts: ExecuteOptions): Promise<Exec
 
   const schemaDefinition = schema.definition as object
   const systemPromptOverride = (schema as any).systemPrompt as string | null
-  const baseSystemPrompt = systemPromptOverride || buildSystemPrompt(schemaDefinition)
 
-  let lastValidationErrors: string[] = []
-  let totalTokens = 0
-  let attempts = 0
+  // Build provider chain: primary + fallbacks
+  const fallbackProviders = (schema.fallbackProviders as string[] | null) || []
+  const providerChain: Array<{ provider: Provider; model: string }> = [
+    { provider: opts.provider as Provider, model: opts.model },
+    ...fallbackProviders.map(p => ({ provider: p as Provider, model: DEFAULT_MODELS[p] || 'gpt-4o-mini' })),
+  ]
+
   let finalOutput: unknown = null
+  let totalTokens = 0
+  let totalAttempts = 0
   let status: 'SUCCESS' | 'FALLBACK' | 'FAILED' = 'FAILED'
+  let providerUsed = opts.provider
+  let modelUsed = opts.model
+  let lastErrors: string[] = []
 
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    attempts = attempt
-    try {
-      const systemPrompt = attempt === 1
-        ? baseSystemPrompt
-        : buildRetrySystemPrompt(schemaDefinition, lastValidationErrors, attempt, maxRetries)
+  for (let pi = 0; pi < providerChain.length; pi++) {
+    const { provider, model } = providerChain[pi]
+    console.log(`Trying provider ${pi + 1}/${providerChain.length}: ${provider}`)
 
-      const temperature = attempt === 1 ? 0.2 : attempt === 2 ? 0.1 : 0.0
+    const result = await tryProvider(
+      provider,
+      model,
+      opts.userId,
+      opts.prompt,
+      schemaDefinition,
+      systemPromptOverride,
+      maxRetries
+    )
 
-      const llmResponse = await callLLM({
-        provider: opts.provider,
-        model: opts.model,
-        systemPrompt,
-        userPrompt: opts.prompt,
-        temperature,
-        apiKey: providerKey,
-      })
+    if (!result) continue // No key for this provider
 
-      totalTokens += llmResponse.tokensUsed
+    totalTokens += result.tokensUsed
+    totalAttempts += result.attempts
+    lastErrors = result.errors
 
-      const parsed = parseJsonOutput(llmResponse.content)
-      if (!parsed) {
-        lastValidationErrors = ['Output is not valid JSON']
-        continue
-      }
-
-      const validation = await validateOutput(parsed, schemaDefinition)
-      if (validation.valid) {
-        finalOutput = parsed
-        status = 'SUCCESS'
-        break
-      }
-
-      lastValidationErrors = validation.errors
-    } catch (err: any) {
-      lastValidationErrors = [`LLM call failed: ${err.message}`]
+    if (result.output !== null) {
+      finalOutput = result.output
+      providerUsed = provider
+      modelUsed = model
+      status = pi === 0 ? 'SUCCESS' : 'FALLBACK'
+      break
     }
   }
 
-  // Use fallback if failed
+  // Use safe fallback if all providers failed
   if (status === 'FAILED' && schema.safeFallback) {
     finalOutput = schema.safeFallback
     status = 'FALLBACK'
@@ -200,15 +263,15 @@ export async function executeWithReliability(opts: ExecuteOptions): Promise<Exec
         projectId: opts.projectId,
         schemaId: opts.schemaId,
         schemaVersion: schema.version,
-        provider: opts.provider,
-        model: opts.model,
+        provider: providerUsed,
+        model: modelUsed,
         status,
-        attempts,
+        attempts: totalAttempts,
         latencyMs,
         tokensUsed: totalTokens,
         inputPrompt: opts.prompt,
         output: finalOutput as any ?? undefined,
-        validationErrors: lastValidationErrors.length > 0 ? lastValidationErrors : undefined,
+        validationErrors: lastErrors.length > 0 ? lastErrors : undefined,
       },
     })
     executionId = execution.id
@@ -220,9 +283,11 @@ export async function executeWithReliability(opts: ExecuteOptions): Promise<Exec
     success: status === 'SUCCESS',
     output: finalOutput,
     executionId,
-    attempts,
+    attempts: totalAttempts,
     latencyMs,
     tokensUsed: totalTokens,
     status,
+    providerUsed,
+    modelUsed,
   }
 }

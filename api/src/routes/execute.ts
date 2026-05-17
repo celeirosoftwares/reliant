@@ -1,6 +1,6 @@
-import { authMiddleware } from '../middleware/auth.js'
 import { FastifyInstance } from 'fastify'
 import { executeWithReliability } from '../services/execution.js'
+import { authMiddleware } from '../middleware/auth.js'
 import { checkUsageLimit } from '../middleware/usage.js'
 
 export async function executeRoutes(app: FastifyInstance) {
@@ -9,6 +9,13 @@ export async function executeRoutes(app: FastifyInstance) {
   app.post('/execute', async (req, reply) => {
     const project = (req as any).project
     const body = req.body as any
+
+    if (!project || !project.id) {
+      return reply.status(401).send({
+        error: 'Unauthorized',
+        message: 'Invalid or missing API key',
+      })
+    }
 
     const { prompt, schema_id, provider, model, user_id, options } = body
 
@@ -27,7 +34,6 @@ export async function executeRoutes(app: FastifyInstance) {
       })
     }
 
-    // Check usage limit before executing
     const allowed = await checkUsageLimit(user_id, reply)
     if (!allowed) return
 
@@ -42,17 +48,22 @@ export async function executeRoutes(app: FastifyInstance) {
         maxRetries: options?.max_retries,
       })
 
+      const usedFallback = result.providerUsed !== provider
+
       return reply.status(result.success ? 200 : 207).send({
         success: result.success,
         status: result.status,
         output: result.output,
+        fallback_used: usedFallback,
         metadata: {
           execution_id: result.executionId,
           attempts: result.attempts,
           latency_ms: result.latencyMs,
           tokens_used: result.tokensUsed,
-          provider,
-          model,
+          provider: result.providerUsed,
+          model: result.modelUsed,
+          original_provider: provider,
+          original_model: model,
         },
       })
     } catch (err: any) {

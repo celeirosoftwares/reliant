@@ -26,6 +26,7 @@ export default function SchemasPage() {
     definition: '{\n  "type": "object",\n  "required": ["name"],\n  "properties": {\n    "name": { "type": "string" }\n  }\n}',
     safe_fallback: '',
     system_prompt: '',
+    fallback_providers: [] as string[],
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -45,8 +46,6 @@ export default function SchemasPage() {
         setApiKey(profile.reliant_api_key)
         setApiUrl(profile.reliant_api_url || 'https://reliant-production.up.railway.app')
         await loadSchemas(profile.reliant_api_key, profile.reliant_api_url)
-      } else {
-        setLoading(false)
       }
     }
     init()
@@ -64,7 +63,7 @@ export default function SchemasPage() {
 
   function openCreate() {
     setEditSchema(null)
-    setForm({ name: '', slug: '', description: '', definition: '{\n  "type": "object",\n  "required": ["name"],\n  "properties": {\n    "name": { "type": "string" }\n  }\n}', safe_fallback: '', system_prompt: '' })
+    setForm({ name: '', slug: '', description: '', definition: '{\n  "type": "object",\n  "required": ["name"],\n  "properties": {\n    "name": { "type": "string" }\n  }\n}', safe_fallback: '', system_prompt: '', fallback_providers: [] })
     setError('')
     setShowModal(true)
   }
@@ -78,6 +77,7 @@ export default function SchemasPage() {
       definition: JSON.stringify(schema.definition, null, 2),
       safe_fallback: schema.safe_fallback ? JSON.stringify(schema.safe_fallback, null, 2) : '',
       system_prompt: schema.system_prompt || '',
+      fallback_providers: (schema.fallback_providers as string[]) || [],
     })
     setError('')
     setShowModal(true)
@@ -98,6 +98,7 @@ export default function SchemasPage() {
       definition,
       safe_fallback,
       system_prompt: form.system_prompt || undefined,
+      fallback_providers: form.fallback_providers.length > 0 ? form.fallback_providers : undefined,
     }
 
     try {
@@ -237,6 +238,42 @@ export default function SchemasPage() {
                 />
                 <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '10px', color: '#444', marginTop: '4px' }}>
                   Se preenchido, substitui o system prompt padrão do Reliant. O schema JSON será injetado automaticamente.
+                </div>
+              </div>
+
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <label style={{ ...labelStyle, marginBottom: 0 }}>Fallback Providers (opcional)</label>
+                </div>
+                <div style={{ background: '#1a1a1a', border: '1px solid #222', borderRadius: '4px', padding: '12px', display: 'flex', flexWrap: 'wrap' as const, gap: '8px' }}>
+                  {['anthropic', 'openai', 'gemini', 'groq', 'mistral'].map(p => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setForm(f => ({
+                        ...f,
+                        fallback_providers: f.fallback_providers.includes(p)
+                          ? f.fallback_providers.filter(x => x !== p)
+                          : [...f.fallback_providers, p]
+                      }))}
+                      style={{
+                        padding: '5px 12px',
+                        background: form.fallback_providers.includes(p) ? 'rgba(0,255,136,0.1)' : 'transparent',
+                        border: `1px solid ${form.fallback_providers.includes(p) ? 'rgba(0,255,136,0.3)' : '#333'}`,
+                        borderRadius: '4px',
+                        fontFamily: 'var(--font-ui-mono)',
+                        fontSize: '11px',
+                        color: form.fallback_providers.includes(p) ? 'var(--accent)' : '#555',
+                        cursor: 'pointer',
+                        textTransform: 'capitalize' as const,
+                      }}
+                    >
+                      {form.fallback_providers.includes(p) ? '✓ ' : ''}{p}
+                    </button>
+                  ))}
+                </div>
+                <div style={{ fontFamily: 'var(--font-ui-mono)', fontSize: '10px', color: '#444', marginTop: '4px' }}>
+                  Se o provider principal falhar, o Reliant tentará esses providers em ordem.
                 </div>
               </div>
 
