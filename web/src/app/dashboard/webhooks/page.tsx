@@ -129,13 +129,13 @@ export default function WebhooksPage() {
     await loadWebhooks(apiKey, apiUrl, userId)
   }
 
-  async function testWebhook(id: string) {
+  async function testWebhook(id: string, key: string, url: string) {
     setTesting(id)
     setTestResult(null)
     try {
-      const res = await fetch(`${apiUrl}/webhooks/${id}/test`, {
+      const res = await fetch(`${url}/webhooks/${id}/test`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Reliant-Key': apiKey },
+        headers: { 'Content-Type': 'application/json', 'X-Reliant-Key': key },
       })
       const data = await res.json()
       setTestResult(data)
@@ -208,7 +208,7 @@ export default function WebhooksPage() {
                 </div>
                 <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                   <button
-                    onClick={() => testWebhook(w.id)}
+                    onClick={() => testWebhook(w.id, apiKey, apiUrl)}
                     disabled={testing === w.id}
                     style={{ padding: '6px 12px', background: 'transparent', border: '1px solid #222', borderRadius: '4px', fontFamily: 'var(--font-ui-mono)', fontSize: '11px', color: '#555', cursor: 'pointer' }}
                   >
