@@ -143,9 +143,11 @@ export async function webhookRoutes(app: FastifyInstance) {
         signal: AbortSignal.timeout(10000),
       })
 
+      const responseBody = await res.text()
       return reply.send({
         success: res.ok,
         status_code: res.status,
+        response_body: responseBody,
         payload: testPayload,
       })
     } catch (err: any) {
