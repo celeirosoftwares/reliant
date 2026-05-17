@@ -1,4 +1,5 @@
 import { callLLM, Provider } from '../lib/llm.js'
+import { dispatchWebhooks, WebhookEvent } from './webhook.js'
 import { prisma } from '../lib/prisma.js'
 
 const SUPABASE_URL = process.env.SUPABASE_URL!
@@ -278,6 +279,23 @@ export async function executeWithReliability(opts: ExecuteOptions): Promise<Exec
   } catch (err: any) {
     console.error('Failed to log execution:', err.message)
   }
+
+  // Dispatch webhooks (fire and forget)
+  const webhookEvent: WebhookEvent = status === 'SUCCESS'
+    ? 'execution.success'
+    : status === 'FALLBACK'
+    ? 'execution.fallback'
+    : 'execution.failed'
+
+  dispatchWebhooks(opts.userId, webhookEvent, {
+    execution_id: executionId,
+    schema_id: opts.schemaId,
+    provider: providerUsed,
+    model: modelUsed,
+    attempts: totalAttempts,
+    latency_ms: latencyMs,
+    status,
+  })
 
   return {
     success: status === 'SUCCESS',

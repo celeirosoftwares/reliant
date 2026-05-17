@@ -30,6 +30,7 @@ const navItems = [
       { href: '/dashboard/schemas', label: 'Schemas', icon: '❑' },
       { href: '/dashboard/providers', label: 'Providers de IA', icon: '🔌' },
       { href: '/dashboard/settings', label: 'Configurações', icon: '⚙' },
+      { href: '/dashboard/webhooks', label: 'Webhooks', icon: '🔔' },	
     ],
   },
   {

@@ -9,6 +9,7 @@ import { executionsRoutes } from './routes/executions.js'
 import { metricsRoutes } from './routes/metrics.js'
 import { projectsRoutes } from './routes/projects.js'
 import { analyticsRoutes } from './routes/analytics.js'
+import { webhookRoutes } from './routes/webhooks.js'
 
 const server = Fastify({
   logger: {
@@ -40,6 +41,7 @@ async function start() {
   await server.register(executionsRoutes, { prefix: '/executions' })
   await server.register(metricsRoutes, { prefix: '/metrics' })
   await server.register(analyticsRoutes, { prefix: '/analytics' })
+  await server.register(webhookRoutes)
 
   const port = parseInt(process.env.PORT ?? '3100')
   const host = process.env.HOST ?? '0.0.0.0'
