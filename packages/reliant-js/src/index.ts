@@ -1,204 +1,192 @@
-/**
- * Reliant JS SDK
- * The reliability layer for LLM-powered products
- *
- * @example
- * ```typescript
- * import { Reliant } from 'reliant-js';
- *
- * const reliant = new Reliant({ apiKey: 'rel_...' });
- *
- * const result = await reliant.execute({
- *   prompt: 'Extract contact info from: John Doe, john@example.com',
- *   schemaId: 'sch_contact_extraction',
- *   provider: 'openai',
- *   model: 'gpt-4o',
- * });
- *
- * console.log(result.output);
- * ```
- */
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 export interface ReliantConfig {
   apiKey: string
+  userId: string
   baseUrl?: string
   timeout?: number
 }
 
-export interface ExecuteInput {
+export interface ExecuteOptions {
   prompt: string
   schemaId: string
-  provider: 'openai' | 'anthropic' | 'gemini'
+  provider: string
   model: string
-  options?: {
-    max_retries?: number
-    temperature?: number
-    max_tokens?: number
-    fallback?: { enabled?: boolean }
-  }
+  maxRetries?: number
 }
 
 export interface ExecuteResult {
   success: boolean
-  output: any
+  status: 'SUCCESS' | 'FALLBACK' | 'FAILED'
+  output: unknown
+  fallback_used: boolean
   metadata: {
     execution_id: string
-    status: 'success' | 'failed' | 'fallback'
+    schema_version: number
     attempts: number
     latency_ms: number
-    model_used: string
     tokens_used: number
-    schema_version: number
-    validation_errors?: Array<{ path: string; message: string }>
+    provider: string
+    model: string
+    original_provider: string
+    original_model: string
   }
 }
 
-export interface SchemaInput {
-  name: string
-  slug: string
-  description?: string
-  definition: object
-  safe_fallback?: object
+export interface BatchOptions {
+  prompts: string[]
+  schemaId: string
+  provider: string
+  model: string
+  concurrency?: number
+  costOptimized?: boolean
+  maxRetries?: number
 }
 
-export interface SchemaResult {
-  id: string
-  name: string
-  slug: string
-  version: number
-  description: string | null
-  definition: object
-  safe_fallback: object | null
-  is_active: boolean
-  created_at: string
-}
-
-export interface PaginatedExecutions {
-  executions: any[]
-  pagination: {
-    page: number
-    limit: number
-    total: number
-    pages: number
+export interface BatchResultItem {
+  index: number
+  success: boolean
+  status: string
+  output: unknown
+  error?: string
+  metadata: {
+    execution_id?: string
+    schema_version?: number
+    attempts?: number
+    latency_ms?: number
+    tokens_used?: number
+    provider: string
+    model: string
+    cost_optimized?: boolean
   }
 }
 
-export interface MetricsSummary {
-  period_days: number
-  total_executions: number
-  success_rate: number
-  status_breakdown: {
+export interface BatchResult {
+  success: boolean
+  total: number
+  summary: {
     success: number
-    failed: number
     fallback: number
-  }
-  avg_latency_ms: number
-  avg_attempts: number
-  total_tokens: number
-  daily: Array<{
-    date: string
-    total: number
-    success: number
     failed: number
-    tokens: number
-  }>
+    success_rate: number
+    total_tokens: number
+    total_latency_ms: number
+    avg_latency_ms: number
+  }
+  results: BatchResultItem[]
 }
 
-// ─── Client ───────────────────────────────────────────────────────────────────
+export class ReliantError extends Error {
+  constructor(message: string, public statusCode: number) {
+    super(message)
+    this.name = 'ReliantError'
+  }
+}
 
 export class Reliant {
   private apiKey: string
+  private userId: string
   private baseUrl: string
   private timeout: number
 
   constructor(config: ReliantConfig) {
-    if (!config.apiKey) {
-      throw new Error('Reliant: apiKey is required')
-    }
-
+    if (!config.apiKey) throw new ReliantError('apiKey is required', 0)
+    if (!config.userId) throw new ReliantError('userId is required', 0)
     this.apiKey = config.apiKey
-    this.baseUrl = (config.baseUrl ?? 'https://api.reliant.dev').replace(/\/$/, '')
-    this.timeout = config.timeout ?? 120_000 // 2 min default for LLM calls
+    this.userId = config.userId
+    this.baseUrl = (config.baseUrl || 'https://reliant-production.up.railway.app').replace(/\/$/, '')
+    this.timeout = config.timeout || 120000
   }
 
-  // ─── Execute ──────────────────────────────────────────────────────────────
-
-  async execute(input: ExecuteInput): Promise<ExecuteResult> {
-    return this.request<ExecuteResult>('POST', '/execute', {
-      prompt: input.prompt,
-      schema_id: input.schemaId,
-      provider: input.provider,
-      model: input.model,
-      options: input.options,
+  async execute(options: ExecuteOptions): Promise<ExecuteResult> {
+    return this.request('POST', '/execute', {
+      prompt: options.prompt,
+      schema_id: options.schemaId,
+      provider: options.provider,
+      model: options.model,
+      user_id: this.userId,
+      options: { max_retries: options.maxRetries },
     })
   }
 
-  // ─── Schemas ──────────────────────────────────────────────────────────────
+  async executeBatch(options: BatchOptions): Promise<BatchResult> {
+    if (!options.prompts || options.prompts.length === 0) {
+      throw new ReliantError('prompts must be a non-empty array', 0)
+    }
+    if (options.prompts.length > 100) {
+      throw new ReliantError('Maximum 100 prompts per batch', 0)
+    }
 
-  async createSchema(input: SchemaInput): Promise<SchemaResult> {
-    return this.request<SchemaResult>('POST', '/schemas', input)
+    return this.request('POST', '/execute-batch', {
+      prompts: options.prompts,
+      schema_id: options.schemaId,
+      provider: options.provider,
+      model: options.model,
+      user_id: this.userId,
+      options: {
+        concurrency: options.concurrency ?? 3,
+        cost_optimized: options.costOptimized ?? false,
+        max_retries: options.maxRetries ?? 3,
+      },
+    })
   }
 
-  async getSchema(id: string): Promise<SchemaResult> {
-    return this.request<SchemaResult>('GET', `/schemas/${id}`)
+  async listSchemas(): Promise<any> {
+    return this.request('GET', '/schemas')
   }
 
-  async listSchemas(): Promise<{ schemas: SchemaResult[] }> {
-    return this.request<{ schemas: SchemaResult[] }>('GET', '/schemas')
+  async getSchema(id: string): Promise<any> {
+    return this.request('GET', `/schemas/${id}`)
   }
 
-  async updateSchema(id: string, input: Partial<SchemaInput>): Promise<SchemaResult> {
-    return this.request<SchemaResult>('PUT', `/schemas/${id}`, input)
+  async createSchema(params: {
+    name: string
+    slug: string
+    definition: object
+    safeFallback?: object
+    description?: string
+    systemPrompt?: string
+    fallbackProviders?: string[]
+  }): Promise<any> {
+    return this.request('POST', '/schemas', {
+      name: params.name,
+      slug: params.slug,
+      definition: params.definition,
+      safe_fallback: params.safeFallback,
+      description: params.description,
+      system_prompt: params.systemPrompt,
+      fallback_providers: params.fallbackProviders,
+    })
   }
 
-  async deleteSchema(id: string): Promise<{ success: boolean }> {
-    return this.request<{ success: boolean }>('DELETE', `/schemas/${id}`)
-  }
-
-  // ─── Executions ───────────────────────────────────────────────────────────
-
-  async listExecutions(params?: {
-    page?: number
-    limit?: number
-    status?: string
-    schema_id?: string
-  }): Promise<PaginatedExecutions> {
+  async listExecutions(params?: { limit?: number; status?: string; schemaId?: string }): Promise<any> {
     const query = new URLSearchParams()
-    if (params?.page) query.set('page', String(params.page))
     if (params?.limit) query.set('limit', String(params.limit))
     if (params?.status) query.set('status', params.status)
-    if (params?.schema_id) query.set('schema_id', params.schema_id)
-    const qs = query.toString()
-    return this.request<PaginatedExecutions>('GET', `/executions${qs ? '?' + qs : ''}`)
+    if (params?.schemaId) query.set('schema_id', params.schemaId)
+    return this.request('GET', `/executions?${query.toString()}`)
   }
 
   async getExecution(id: string): Promise<any> {
-    return this.request<any>('GET', `/executions/${id}`)
+    return this.request('GET', `/executions/${id}`)
   }
 
-  // ─── Metrics ──────────────────────────────────────────────────────────────
-
-  async getMetricsSummary(days?: number): Promise<MetricsSummary> {
-    const qs = days ? `?days=${days}` : ''
-    return this.request<MetricsSummary>('GET', `/metrics/summary${qs}`)
+  async getMetrics(days = 30): Promise<any> {
+    return this.request('GET', `/metrics/summary?days=${days}`)
   }
 
-  async getSchemaMetrics(schemaId: string): Promise<any> {
-    return this.request<any>('GET', `/metrics/schemas/${schemaId}`)
+  async getMetricsBySchema(days = 30): Promise<any> {
+    return this.request('GET', `/analytics/by-schema?days=${days}`)
   }
 
-  // ─── Internal ─────────────────────────────────────────────────────────────
+  async getMetricsByProvider(days = 30): Promise<any> {
+    return this.request('GET', `/analytics/by-provider?days=${days}`)
+  }
 
-  private async request<T>(method: string, path: string, body?: unknown): Promise<T> {
-    const url = `${this.baseUrl}${path}`
-
+  private async request(method: string, path: string, body?: object): Promise<any> {
     const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), this.timeout)
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout)
 
     try {
-      const response = await fetch(url, {
+      const res = await fetch(`${this.baseUrl}${path}`, {
         method,
         headers: {
           'Content-Type': 'application/json',
@@ -208,41 +196,14 @@ export class Reliant {
         signal: controller.signal,
       })
 
-      const data = await response.json() as any
-
-      if (!response.ok) {
-        throw new ReliantError(
-          data.message ?? data.error ?? `Request failed with status ${response.status}`,
-          response.status,
-          data,
-        )
+      const data = await res.json()
+      if (!res.ok) {
+        throw new ReliantError(data.message || data.error || 'Unknown error', res.status)
       }
-
-      return data as T
-    } catch (err) {
-      if (err instanceof ReliantError) throw err
-      if (err instanceof Error && err.name === 'AbortError') {
-        throw new ReliantError('Request timed out', 408)
-      }
-      throw new ReliantError(
-        err instanceof Error ? err.message : 'Unknown error',
-        0,
-      )
+      return data
     } finally {
-      clearTimeout(timer)
+      clearTimeout(timeoutId)
     }
-  }
-}
-
-export class ReliantError extends Error {
-  status: number
-  data?: unknown
-
-  constructor(message: string, status: number, data?: unknown) {
-    super(message)
-    this.name = 'ReliantError'
-    this.status = status
-    this.data = data
   }
 }
 

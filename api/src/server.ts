@@ -10,6 +10,7 @@ import { metricsRoutes } from './routes/metrics.js'
 import { projectsRoutes } from './routes/projects.js'
 import { analyticsRoutes } from './routes/analytics.js'
 import { webhookRoutes } from './routes/webhooks.js'
+import { executeBatchRoutes } from './routes/execute-batch.js'
 
 const server = Fastify({
   logger: {
@@ -38,6 +39,7 @@ async function start() {
   await server.register(projectsRoutes, { prefix: '/projects' })
   await server.register(schemasRoutes, { prefix: '/schemas' })
   await server.register(executeRoutes)
+  await server.register(executeBatchRoutes)
   await server.register(executionsRoutes, { prefix: '/executions' })
   await server.register(metricsRoutes, { prefix: '/metrics' })
   await server.register(analyticsRoutes, { prefix: '/analytics' })
