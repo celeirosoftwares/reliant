@@ -25,6 +25,7 @@ export interface ExecuteResult {
   status: 'SUCCESS' | 'FALLBACK' | 'FAILED'
   providerUsed: string
   modelUsed: string
+  schemaVersion: number
 }
 
 interface ProviderKeyRow {
@@ -307,5 +308,6 @@ export async function executeWithReliability(opts: ExecuteOptions): Promise<Exec
     status,
     providerUsed,
     modelUsed,
+    schemaVersion: schema.version,
   }
 }

@@ -57,6 +57,7 @@ export async function executeRoutes(app: FastifyInstance) {
         fallback_used: usedFallback,
         metadata: {
           execution_id: result.executionId,
+          schema_version: result.schemaVersion,
           attempts: result.attempts,
           latency_ms: result.latencyMs,
           tokens_used: result.tokensUsed,
